@@ -1,0 +1,117 @@
+# Run with `REST Client` extension for VS Code
+
+@baseUrl = http://localhost:5000/api/v1
+@accessToken = your_access_token_here
+@refreshToken = your_refresh_token_here
+
+### ============================================
+### HEALTH CHECK
+### ============================================
+
+### Home
+GET http://localhost:5000
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ============================================
+### AUTH ENDPOINTS
+### ============================================
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "melissawheel.e.r.9.26.3.2@gmail.com",
+  "password": "Password1#"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "apitest@tensi.org",
+  "password": "Password1#"
+}
+
+### Verify Email
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "code": "123456"
+}
+
+### Resend Verification Code
+POST {{baseUrl}}/auth/resend-verification-code
+Content-Type: application/json
+
+{
+  "email": "apitest@tensi.org"
+}
+
+### Forgot Password
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+
+### Resend Forgot Password
+POST {{baseUrl}}/auth/resend-forgot-password
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+
+### Reset Password
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "your_reset_token_from_email",
+  "newPassword": "NewPassword1#"
+}
+
+### Refresh Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### ============================================
+### USER ENDPOINTS
+### ============================================
+
+### Get All Users
+GET {{baseUrl}}/user
+
+### Get Single User
+GET {{baseUrl}}/user/9b7a3fa1-6e1c-457d-872b-0b4efedb33e7
+
+### Create User
+POST {{baseUrl}}/user
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}

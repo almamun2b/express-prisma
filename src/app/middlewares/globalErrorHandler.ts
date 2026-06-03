@@ -1,0 +1,111 @@
+import { Prisma } from "@/generated/prisma/client";
+import type { ErrorRequestHandler } from "express";
+import { StatusCodes } from "http-status-codes";
+import { ZodError } from "zod";
+import { env } from "../config/env";
+import { handlePrismaError } from "../errors/handlePrismaClientKnownRequestError";
+import { handlePrismaValidationError } from "../errors/handlePrismaValidationError";
+import { handleZodError } from "../errors/handleZodError";
+import {
+  ErrorCode,
+  type IErrorIssue,
+  type IErrorResponse,
+} from "../types/error";
+import { AppError } from "../utils/AppError";
+import { logger } from "../utils/logger";
+
+const isDev = env.nodeEnv === "development";
+
+const GENERIC_SERVER_MESSAGE =
+  "An unexpected error occurred. Please try again later.";
+const DATABASE_SERVER_MESSAGE =
+  "A database error occurred while processing your request.";
+const DATABASE_SERVICE_UNAVAILABLE_MESSAGE = "Database service unavailable";
+const DATABASE_ENGINE_FAILURE_MESSAGE = "Database engine failure";
+
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  let statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR;
+  let message: string = GENERIC_SERVER_MESSAGE;
+  let code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+  let errors: IErrorIssue[] = [];
+
+  if (err instanceof ZodError) {
+    const simplifiedError = handleZodError(err);
+    statusCode = simplifiedError.statusCode;
+    code = simplifiedError.code ?? ErrorCode.VALIDATION_ERROR;
+    message = simplifiedError.message;
+    errors = simplifiedError.errors;
+  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    const simplifiedError = handlePrismaError(err);
+    statusCode = simplifiedError.statusCode;
+    code = simplifiedError.code ?? ErrorCode.DATABASE_ERROR;
+    message = simplifiedError.message;
+    errors = simplifiedError.errors;
+  } else if (err instanceof Prisma.PrismaClientValidationError) {
+    const simplifiedError = handlePrismaValidationError(err);
+    statusCode = simplifiedError.statusCode;
+    code = simplifiedError.code ?? ErrorCode.VALIDATION_ERROR;
+    message = simplifiedError.message;
+    errors = simplifiedError.errors;
+  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    code = ErrorCode.DATABASE_ERROR;
+    message = DATABASE_SERVER_MESSAGE;
+    errors = [];
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
+    statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+    code = ErrorCode.DATABASE_ERROR;
+    message = DATABASE_SERVICE_UNAVAILABLE_MESSAGE;
+    errors = [];
+  } else if (err instanceof Prisma.PrismaClientRustPanicError) {
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    code = ErrorCode.DATABASE_ERROR;
+    message = DATABASE_ENGINE_FAILURE_MESSAGE;
+    errors = [];
+  } else if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    code = err?.code ?? ErrorCode.APP_ERROR;
+    message = err.message;
+    errors = [];
+  } else if (err instanceof Error) {
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    code = ErrorCode.INTERNAL_SERVER_ERROR;
+    message = err.message;
+    errors = [];
+  } else {
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    code = ErrorCode.UNKNOWN_ERROR;
+    message = err?.message || GENERIC_SERVER_MESSAGE;
+    errors = [];
+  }
+
+  if (statusCode >= StatusCodes.INTERNAL_SERVER_ERROR) {
+    logger.error(err, {
+      statusCode,
+      code,
+      path: req.originalUrl,
+      ip: req.ip,
+      method: req.method,
+      userAgent: req.headers["user-agent"],
+    });
+  }
+
+  const errorBody: IErrorResponse = {
+    success: false,
+    statusCode,
+    code,
+    message,
+    timestamp: new Date().toISOString(),
+    path: req.originalUrl,
+    errors,
+  };
+
+  if (isDev) {
+    errorBody.error = { name: err?.name || "UnknownError", message };
+    errorBody.stack = err?.stack;
+  }
+
+  res.status(statusCode).json(errorBody);
+};
+
+export default globalErrorHandler;

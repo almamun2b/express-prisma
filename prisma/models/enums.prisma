@@ -1,0 +1,39 @@
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  PENDING        // Email/phone not verified
+  ACTIVE         // Normal active user
+  INACTIVE       // User deactivated their account
+  SUSPENDED      // Temporarily suspended by admin
+  BANNED         // Permanently banned
+  DELETED        // Soft deleted
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum AuthProviderName {
+  CREDENTIAL
+  GOOGLE
+  FACEBOOK
+  GITHUB
+}
+
+
+// enum OtpPurpose {
+//   REGISTER
+//   FORGOT_PASSWORD
+// }
+
+// enum TokenType {
+//   ACCESS
+//   REFRESH
+// }
