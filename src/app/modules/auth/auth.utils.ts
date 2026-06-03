@@ -30,11 +30,10 @@ const refreshTokenBlacklistRedisKey = (token: string): string =>
 const forgotPassCooldownRedisKey = (email: string): string =>
   `${AuthConstants.FORGOT_PASS_COOLDOWN_KEY_PREFIX}${email}`;
 
-const sendOtpToEmail = async (email: string): Promise<void> => {
+const sendOtpToEmail = async (email: string) => {
   const otp = generateOtp();
   const otpKey = otpRedisKey(email);
   const cooldownKey = otpCooldownRedisKey(email);
-  const purpose = "email verification";
 
   await redisClient.setEx(otpKey, AuthConstants.OTP_TTL_SECONDS, otp);
   await redisClient.setEx(cooldownKey, AuthConstants.OTP_COOLDOWN_SECONDS, "1");
@@ -45,7 +44,7 @@ const sendOtpToEmail = async (email: string): Promise<void> => {
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaec; border-radius: 8px; background-color: #ffffff;">
       <h2 style="color: #333333; text-align: center; margin-bottom: 24px;">Verification Code</h2>
       <p style="color: #555555; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
-        You recently requested a verification code for <strong>${purpose}</strong>. Please use the following code to proceed:
+        You recently requested a verification code for <strong>email verification</strong>. Please use the following code to proceed:
       </p>
       <div style="text-align: center; margin: 32px 0;">
         <span style="display: inline-block; padding: 16px 32px; background-color: #f4f4f5; color: #18181b; font-size: 24px; font-weight: bold; letter-spacing: 4px; border-radius: 6px;">
@@ -61,17 +60,15 @@ const sendOtpToEmail = async (email: string): Promise<void> => {
       </p>
     </div>
   `;
-  await sendEmail({
+  const result = await sendEmail({
     to: email,
-    subject: `Your verification code for ${purpose}`,
+    subject: "Your email verification code",
     html,
   });
+  return result;
 };
 
-const sendPasswordResetEmail = async (
-  email: string,
-  resetLink: string,
-): Promise<void> => {
+const sendPasswordResetEmail = async (email: string, resetLink: string) => {
   const expiresInMs = expiresInToMs(env.jwt.resetPassSecretExpiresIn);
   const expiresIn = formatSeconds(Math.floor(expiresInMs / 1000));
 
@@ -102,11 +99,12 @@ const sendPasswordResetEmail = async (
     </div>
   `;
 
-  await sendEmail({
+  const result = await sendEmail({
     to: email,
     subject: "Reset your password",
     html,
   });
+  return result;
 };
 
 const blacklistRefreshToken = async (token: string): Promise<void> => {
