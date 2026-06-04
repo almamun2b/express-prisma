@@ -1,11 +1,8 @@
-import { AppError } from "@/app/utils/AppError";
 import { catchAsync } from "@/app/utils/catchAsync";
 import { sendResponse } from "@/app/utils/sendResponse";
-import { clearAuthCookies, setAuthCookies } from "@/app/utils/setCookie";
+import { setAuthCookies } from "@/app/utils/setCookie";
 import { StatusCodes } from "http-status-codes";
-import { AuthMessages } from "./auth.constants";
 import { AuthServices } from "./auth.service";
-import type { AuthTypes } from "./auth.types";
 
 const register = catchAsync(async (req, res) => {
   const result = await AuthServices.register(req.body);
@@ -58,19 +55,7 @@ const login = catchAsync(async (req, res) => {
 });
 
 const refreshToken = catchAsync(async (req, res) => {
-  const token: AuthTypes.TRefreshTokenInput["refreshToken"] =
-    req.cookies?.refreshToken ?? req.body?.refreshToken;
-
-  if (!token) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      AuthMessages.REFRESH_TOKEN_MISSING,
-    );
-  }
-
-  const result = await AuthServices.refreshToken(token);
-
-  setAuthCookies(res, result.tokens);
+  const result = await AuthServices.refreshToken(req, res);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -82,19 +67,7 @@ const refreshToken = catchAsync(async (req, res) => {
 });
 
 const logout = catchAsync(async (req, res) => {
-  const token: AuthTypes.TLogoutInput["refreshToken"] =
-    req.cookies?.refreshToken ?? req.body?.refreshToken;
-
-  if (!token) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      AuthMessages.REFRESH_TOKEN_MISSING,
-    );
-  }
-
-  const result = await AuthServices.logout(token);
-
-  clearAuthCookies(res);
+  const result = await AuthServices.logout(req, res);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

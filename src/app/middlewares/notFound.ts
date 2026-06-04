@@ -8,7 +8,6 @@ const notFound = (req: Request, _res: Response, next: NextFunction) => {
     new AppError(
       StatusCodes.NOT_FOUND,
       "Your requested path is not found!",
-      true,
       ErrorCode.NOT_FOUND,
     ),
   );

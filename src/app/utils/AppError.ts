@@ -2,14 +2,14 @@ import type { ErrorCode } from "../types/error";
 
 class AppError extends Error {
   public readonly statusCode: number;
-  public readonly isOperational: boolean;
   public readonly code?: ErrorCode;
+  public readonly isOperational?: boolean;
 
   constructor(
     statusCode: number,
     message: string = "Something went wrong!",
-    isOperational = true,
     code?: ErrorCode,
+    isOperational: boolean = true,
     stack?: string,
   ) {
     super(message);

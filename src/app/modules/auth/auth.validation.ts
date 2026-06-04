@@ -56,22 +56,6 @@ const forgotPasswordSchema = z.object({
   email: emailField,
 });
 
-const refreshTokenSchema = z.object({
-  refreshToken: z
-    .string()
-    .trim()
-    .min(1, "Refresh token is required")
-    .optional(),
-});
-
-const logoutSchema = z.object({
-  refreshToken: z
-    .string()
-    .trim()
-    .min(1, "Refresh token is required")
-    .optional(),
-});
-
 const resetPasswordSchema = z.object({
   token: z.string().min(1, "Reset token is required"),
   newPassword: passwordField,
@@ -90,7 +74,5 @@ export const AuthValidation = {
   verifyEmailSchema,
   resendVerificationSchema,
   forgotPasswordSchema,
-  refreshTokenSchema,
   resetPasswordSchema,
-  logoutSchema,
 };
