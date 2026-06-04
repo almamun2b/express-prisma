@@ -21,18 +21,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async ({
-  to,
-  subject,
-  html,
-}: SendEmailOptions): Promise<void> => {
+export const sendEmail = async ({ to, subject, html }: SendEmailOptions) => {
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"API Support" <${env.emailSender.email}>`,
       to,
       subject,
       html,
     });
+    return info;
   } catch (error) {
     logger.error(`Failed to send email to ${to}:`, error);
     throw error;
