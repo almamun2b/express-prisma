@@ -1,7 +1,7 @@
 import { randomInt } from "crypto";
 import type { Secret } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
-import type { TJwtExpiresIn } from "../types/environments";
+import type { TJwtExpiresIn } from "../types/env.types";
 import { RedisConstants } from "./redis";
 
 const Messages = {

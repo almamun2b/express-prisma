@@ -1,7 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import { StatusCodes } from "http-status-codes";
-import type { TCode } from "../types/codes";
-import type { IErrorIssue, IGenericErrorResponse } from "../types/errors";
+import type { TCode } from "../types/codes.types";
+import type { IErrorIssue, IGenericErrorResponse } from "../types/errors.types";
 import { Codes } from "../utils/codes";
 
 const PRISMA_UNAVAILABLE_CODES = new Set([

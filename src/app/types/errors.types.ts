@@ -1,4 +1,4 @@
-import type { TCode } from "./codes";
+import type { TCode } from "./codes.types";
 
 export interface IErrorIssue {
   field?: string | null;

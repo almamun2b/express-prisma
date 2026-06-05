@@ -1,4 +1,4 @@
-import type { TJwtExpiresIn } from "./jwt";
+import type { TJwtExpiresIn } from "./jwt.types";
 
 interface IEnv {
   nodeEnv: "development" | "production";

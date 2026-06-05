@@ -6,7 +6,10 @@ import { verifyToken } from "@/app/utils/token";
 import { UserRole } from "@/generated/prisma/client";
 import type { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { roleHasPermission, type Permission } from "../constants/permissions";
+import {
+  roleHasPermission,
+  type Permission,
+} from "../constants/permissions.constants";
 
 const Messages = {
   UNAUTHORIZED: "You are not authorized!",

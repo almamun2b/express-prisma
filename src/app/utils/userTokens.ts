@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import type { JwtPayload } from "jsonwebtoken";
 import { env } from "../config/env";
 import { prisma } from "../config/prisma";
-import type { ITokenPayload } from "../types/jwt";
+import type { ITokenPayload } from "../types/jwt.types";
 import { AppError } from "./appError";
 import { checkUserStatus } from "./checkUserStatus";
 import { Codes } from "./codes";
