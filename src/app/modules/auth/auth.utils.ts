@@ -9,7 +9,7 @@ import {
 import { logger } from "@/app/utils/logger";
 import { expiresInToMs, formatSeconds } from "@/app/utils/parser";
 import { redis, RedisConstants } from "@/app/utils/redis";
-import { generateOtp, verifyToken } from "@/app/utils/token";
+import { verifyToken } from "@/app/utils/token";
 import type { Request } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AuthMessages } from "./auth.constants";
@@ -37,7 +37,7 @@ const sendOtpToEmail = async (email: string) => {
       `${Messages.RESEND_COOLDOWN}`,
     );
   }
-  const otp = generateOtp();
+  const otp = redis.generateOtp();
 
   await redisClient.setEx(otpKey, RedisConstants.OTP_TTL_SECONDS, otp);
   await redisClient.setEx(

@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import type { CustomCodesType, HttpStatusCodeMap } from "../types/codes";
+import type { CustomCodesType, HttpStatusCodeMap } from "../types/codes.types";
 
 const CustomCodes = {
   VALIDATION_ERROR: "VALIDATION_ERROR",

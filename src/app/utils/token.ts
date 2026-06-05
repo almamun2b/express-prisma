@@ -1,20 +1,21 @@
-import { randomInt } from "crypto";
-import type { Secret } from "jsonwebtoken";
+import { type User } from "@/generated/prisma/client";
+import { StatusCodes } from "http-status-codes";
+import type { JwtPayload, Secret } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
-import type { TJwtExpiresIn } from "../types/environments";
-import { RedisConstants } from "./redis";
+import { env } from "../config/env";
+import { prisma } from "../config/prisma";
+import type { TJwtExpiresIn } from "../types/env.types";
+import type { ITokenPayload } from "../types/jwt.types";
+import { AppError } from "./appError";
+import { checkUserStatus } from "./checkUserStatus";
+import { Codes } from "./codes";
 
 const Messages = {
   INVALID_TOKEN_PAYLOAD: "Invalid token payload",
+  INVALID_REFRESH_TOKEN: "Invalid or expired refresh token",
 } as const;
 
-const generateOtp = (): string => {
-  let otp = "";
-  for (let i = 0; i < RedisConstants.OTP_LENGTH; i++) {
-    otp += randomInt(0, 10).toString();
-  }
-  return otp;
-};
+type TokenUser = Pick<User, "id" | "email" | "role">;
 
 const generateToken = (
   payload: string | object | Buffer,
@@ -36,4 +37,63 @@ const verifyToken = (token: string, secret: Buffer | Secret) => {
   return verifiedToken;
 };
 
-export { generateOtp, generateToken, verifyToken };
+const createJwtPayload = (user: TokenUser): ITokenPayload => ({
+  userId: user.id,
+  email: user.email,
+  role: user.role,
+});
+
+const createUserTokens = (user: TokenUser) => {
+  const jwtPayload = createJwtPayload(user);
+
+  const accessToken = generateToken(
+    jwtPayload,
+    env.jwt.accessTokenSecret,
+    env.jwt.accessTokenSecretExpiresIn,
+  );
+
+  const refreshToken = generateToken(
+    jwtPayload,
+    env.jwt.refreshTokenSecret,
+    env.jwt.refreshTokenSecretExpiresIn,
+  );
+
+  return { accessToken, refreshToken };
+};
+
+const regenerateTokens = async (refreshToken: string) => {
+  let verified: JwtPayload;
+
+  try {
+    verified = verifyToken(refreshToken, env.jwt.refreshTokenSecret);
+  } catch {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      Messages.INVALID_REFRESH_TOKEN,
+      Codes.UNAUTHORIZED,
+    );
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: verified.userId },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      status: true,
+      deletedAt: true,
+      isVerified: true,
+    },
+  });
+
+  checkUserStatus(user);
+  return createUserTokens(user);
+};
+
+export {
+  createJwtPayload,
+  createUserTokens,
+  generateToken,
+  regenerateTokens,
+  verifyToken,
+};

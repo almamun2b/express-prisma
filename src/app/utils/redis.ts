@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, randomInt } from "crypto";
 
 const RedisConstants = {
   OTP_LENGTH: 6,
@@ -14,6 +14,14 @@ const RedisConstants = {
   FORGOT_PASS_COOLDOWN_SECONDS: 2 * 60,
   FORGOT_PASS_COOLDOWN_KEY_PREFIX: "fp:cooldown:",
 } as const;
+
+const generateOtp = (): string => {
+  let otp = "";
+  for (let i = 0; i < RedisConstants.OTP_LENGTH; i++) {
+    otp += randomInt(0, 10).toString();
+  }
+  return otp;
+};
 
 const getOtpRedisKey = (email: string): string =>
   `${RedisConstants.OTP_TLT_KEY_PREFIX}${email}`;
@@ -40,6 +48,7 @@ const getForgotPassTokenBlacklistRedisKey = (token: string): string => {
 };
 
 const redis = {
+  generateOtp,
   getOtpRedisKey,
   getOtpCooldownRedisKey,
   getAccessTokenBlacklistRedisKey,

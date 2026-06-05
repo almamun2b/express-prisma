@@ -6,8 +6,12 @@ import { checkUserStatus } from "@/app/utils/checkUserStatus";
 import { comparePassword, hashPassword } from "@/app/utils/hash";
 import { redis, RedisConstants } from "@/app/utils/redis";
 import { clearAuthCookies, setAuthCookies } from "@/app/utils/setCookie";
-import { generateToken, verifyToken } from "@/app/utils/token";
-import { createJwtPayload, createUserTokens } from "@/app/utils/userTokens";
+import {
+  createJwtPayload,
+  createUserTokens,
+  generateToken,
+  verifyToken,
+} from "@/app/utils/token";
 import { AuthProviderName, UserStatus } from "@/generated/prisma/client";
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";

@@ -1,7 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import { StatusCodes } from "http-status-codes";
-import type { TCode } from "../types/codes";
-import type { IErrorIssue, IGenericErrorResponse } from "../types/errors";
+import type { TCode } from "../types/codes.types";
+import type { IErrorIssue, IGenericErrorResponse } from "../types/errors.types";
 import { Codes } from "../utils/codes";
 
 const PRISMA_UNAVAILABLE_CODES = new Set([
@@ -26,7 +26,7 @@ const Messages = {
   DATABASE_ENGINE_FAILURE: "Database engine failure",
 } as const;
 
-const handlePrismaError = (
+const handlePrismaClientKnownRequestError = (
   err: Prisma.PrismaClientKnownRequestError,
 ): IGenericErrorResponse => {
   let statusCode = StatusCodes.BAD_REQUEST;
@@ -86,4 +86,4 @@ const handlePrismaError = (
   };
 };
 
-export { handlePrismaError };
+export { handlePrismaClientKnownRequestError };

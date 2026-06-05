@@ -1,11 +1,7 @@
 import dotenv from "dotenv";
 import { StatusCodes } from "http-status-codes";
-import type {
-  IEnv,
-  TEnvReturnType,
-  TEnvValueType,
-} from "../types/environments";
-import { EnvEnum } from "../types/environments";
+import type { IEnv, TEnvReturnType, TEnvValueType } from "../types/env.types";
+import { EnvEnum } from "../types/env.types";
 import { AppError } from "../utils/appError";
 
 dotenv.config();

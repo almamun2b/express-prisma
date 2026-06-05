@@ -16,8 +16,4 @@ export namespace AuthTypes {
   export type TResetPasswordInput = z.infer<
     typeof AuthValidation.resetPasswordSchema
   >;
-  // export type TRefreshTokenInput = z.infer<
-  //   typeof AuthValidation.refreshTokenSchema
-  // >;
-  // export type TLogoutInput = z.infer<typeof AuthValidation.logoutSchema>;
 }
