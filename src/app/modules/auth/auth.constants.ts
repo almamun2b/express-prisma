@@ -1,12 +1,13 @@
 export const AuthConstants = {
   OTP_LENGTH: 6,
   OTP_TTL_SECONDS: 10 * 60,
-  OTP_COOLDOWN_SECONDS: 60,
+  OTP_COOLDOWN_SECONDS: 2 * 60,
   OTP_TLT_KEY_PREFIX: "otp:",
   OTP_COOLDOWN_KEY_PREFIX: "otp:cooldown:",
 
-  REFRESH_TOKEN_BLACKLIST_PREFIX: "blacklist:rt:",
   ACCESS_TOKEN_BLACKLIST_PREFIX: "blacklist:at:",
+  REFRESH_TOKEN_BLACKLIST_PREFIX: "blacklist:rt:",
+  FORGOT_PASS_TOKEN_BLACKLIST_PREFIX: "blacklist:fp:",
 
   FORGOT_PASS_COOLDOWN_SECONDS: 2 * 60,
   FORGOT_PASS_COOLDOWN_KEY_PREFIX: "fp:cooldown:",
@@ -33,10 +34,17 @@ export const AuthMessages = {
   EMAIL_NOT_VERIFIED:
     "Your email is not verified. Please verify your email to continue.",
 
+  ACCESS_TOKEN_SUCCESS: "Access token refreshed successfully.",
+  ACCESS_TOKEN_MISSING: "Access token not provided.",
+  ACCESS_TOKEN_INVALID: "Invalid or expired access token.",
+  ACCESS_TOKEN_BLACKLISTED: "Access token has been revoked.",
+
   REFRESH_TOKEN_SUCCESS: "Tokens refreshed successfully.",
   REFRESH_TOKEN_MISSING: "Refresh token not provided.",
   REFRESH_TOKEN_INVALID: "Invalid or expired refresh token.",
   REFRESH_TOKEN_BLACKLISTED: "Refresh token has been revoked.",
+
+  ACCESS_OR_REFRESH_TOKEN_MISSING: "Access or refresh token not provided.",
 
   LOGOUT_SUCCESS: "Logged out successfully.",
 

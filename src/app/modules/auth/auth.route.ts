@@ -31,15 +31,10 @@ router.post(
   AuthController.login,
 );
 
-router.post(
-  "/refresh-token",
-  validateRequest(AuthValidation.refreshTokenSchema),
-  AuthController.refreshToken,
-);
+router.post("/refresh-token", AuthController.refreshToken);
 
 router.post(
   "/logout",
-  validateRequest(AuthValidation.logoutSchema),
   checkAuth(UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   AuthController.logout,
 );

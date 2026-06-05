@@ -29,13 +29,12 @@ Content-Type: application/json
   "password": "Password1#"
 }
 
-### Login
-POST {{baseUrl}}/auth/login
+### Resend Verification Code
+POST {{baseUrl}}/auth/resend-verification-code
 Content-Type: application/json
 
 {
-  "email": "apitest@tensi.org",
-  "password": "Password1#"
+  "email": "apitest@tensi.org"
 }
 
 ### Verify Email
@@ -47,12 +46,30 @@ Content-Type: application/json
   "code": "942176"
 }
 
-### Resend Verification Code
-POST {{baseUrl}}/auth/resend-verification-code
+### Login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "apitest@tensi.org"
+  "email": "apitest@tensi.org",
+  "password": "Password1#"
+}
+
+### Refresh Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "refreshToken": "{{refreshToken}}"
 }
 
 ### Forgot Password
@@ -78,23 +95,6 @@ Content-Type: application/json
 {
   "token": "your_reset_token_from_email",
   "newPassword": "NewPassword1#"
-}
-
-### Refresh Token
-POST {{baseUrl}}/auth/refresh-token
-Content-Type: application/json
-
-{
-  "refreshToken": "{{refreshToken}}"
-}
-
-### Logout
-POST {{baseUrl}}/auth/logout
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "refreshToken": "{{refreshToken}}"
 }
 
 ### ============================================

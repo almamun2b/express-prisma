@@ -1,11 +1,14 @@
 import { env } from "@/app/config/env";
 import { redisClient } from "@/app/config/redis";
 import { sendEmail } from "@/app/config/smtp.gmail";
+import { AppError } from "@/app/utils/AppError";
 import { verifyToken } from "@/app/utils/jwt";
 import { logger } from "@/app/utils/logger";
 import { expiresInToMs, formatSeconds } from "@/app/utils/parser";
 import { createHash, randomInt } from "crypto";
-import { AuthConstants } from "./auth.constants";
+import type { Request } from "express";
+import { StatusCodes } from "http-status-codes";
+import { AuthConstants, AuthMessages } from "./auth.constants";
 
 const generateOtp = (): string => {
   let otp = "";
@@ -21,19 +24,37 @@ const otpRedisKey = (email: string): string =>
 const otpCooldownRedisKey = (email: string): string =>
   `${AuthConstants.OTP_COOLDOWN_KEY_PREFIX}${email}`;
 
-const accessTokenBlacklistRedisKey = (token: string): string =>
-  `${AuthConstants.ACCESS_TOKEN_BLACKLIST_PREFIX}${token}`;
+const accessTokenBlacklistRedisKey = (token: string): string => {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  return `${AuthConstants.ACCESS_TOKEN_BLACKLIST_PREFIX}${tokenHash}`;
+};
 
-const refreshTokenBlacklistRedisKey = (token: string): string =>
-  `${AuthConstants.REFRESH_TOKEN_BLACKLIST_PREFIX}${token}`;
+const refreshTokenBlacklistRedisKey = (token: string): string => {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  return `${AuthConstants.REFRESH_TOKEN_BLACKLIST_PREFIX}${tokenHash}`;
+};
 
 const forgotPassCooldownRedisKey = (email: string): string =>
   `${AuthConstants.FORGOT_PASS_COOLDOWN_KEY_PREFIX}${email}`;
 
+const forgotPassTokenBlacklistRedisKey = (token: string): string => {
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  return `${AuthConstants.FORGOT_PASS_TOKEN_BLACKLIST_PREFIX}${tokenHash}`;
+};
+
 const sendOtpToEmail = async (email: string) => {
-  const otp = generateOtp();
   const otpKey = otpRedisKey(email);
-  const cooldownKey = otpCooldownRedisKey(email);
+  const cooldownKey = AuthUtils.otpCooldownRedisKey(email);
+  const cooldownExists = await redisClient.exists(cooldownKey);
+
+  if (cooldownExists) {
+    const ttl = await redisClient.ttl(cooldownKey);
+    throw new AppError(
+      StatusCodes.TOO_MANY_REQUESTS,
+      `${AuthMessages.RESEND_COOLDOWN} Try again in ${ttl} second(s).`,
+    );
+  }
+  const otp = generateOtp();
 
   await redisClient.setEx(otpKey, AuthConstants.OTP_TTL_SECONDS, otp);
   await redisClient.setEx(cooldownKey, AuthConstants.OTP_COOLDOWN_SECONDS, "1");
@@ -107,6 +128,26 @@ const sendPasswordResetEmail = async (email: string, resetLink: string) => {
   return result;
 };
 
+const blacklistAccessToken = async (token: string): Promise<void> => {
+  try {
+    const payload = verifyToken(token, env.jwt.accessTokenSecret);
+    const exp = payload.exp;
+
+    if (exp) {
+      const ttlSeconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
+      if (ttlSeconds > 0) {
+        await redisClient.setEx(
+          accessTokenBlacklistRedisKey(token),
+          ttlSeconds,
+          "1",
+        );
+      }
+    }
+  } catch (error) {
+    logger.info("Failed to blacklist access token (invalid token):", error);
+  }
+};
+
 const blacklistRefreshToken = async (token: string): Promise<void> => {
   try {
     const payload = verifyToken(token, env.jwt.refreshTokenSecret);
@@ -114,7 +155,6 @@ const blacklistRefreshToken = async (token: string): Promise<void> => {
 
     if (exp) {
       const ttlSeconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
-      const tokenHash = createHash("sha256").update(token).digest("hex");
       if (ttlSeconds > 0) {
         await redisClient.setEx(
           refreshTokenBlacklistRedisKey(token),
@@ -128,14 +168,55 @@ const blacklistRefreshToken = async (token: string): Promise<void> => {
   }
 };
 
+const blacklistForgotPassToken = async (token: string): Promise<void> => {
+  try {
+    const payload = verifyToken(token, env.jwt.resetPassSecret);
+    const exp = payload.exp;
+
+    if (exp) {
+      const ttlSeconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
+      if (ttlSeconds > 0) {
+        await redisClient.setEx(
+          forgotPassTokenBlacklistRedisKey(token),
+          ttlSeconds,
+          "1",
+        );
+      }
+    }
+  } catch (error) {
+    logger.info("Failed to blacklist reset password token (invalid token):", error);
+  }
+};
+
+const blacklistTokens = async (req: Request) => {
+  const accessToken: string | undefined = req.cookies?.accessToken;
+  const refreshToken: string | undefined = req.cookies?.refreshToken;
+
+  console.log(accessToken, refreshToken, "Mamun");
+
+  if (!refreshToken || !accessToken) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      AuthMessages.ACCESS_OR_REFRESH_TOKEN_MISSING,
+    );
+  }
+
+  await AuthUtils.blacklistAccessToken(accessToken);
+  await AuthUtils.blacklistRefreshToken(refreshToken);
+};
+
 export const AuthUtils = {
   generateOtp,
   otpRedisKey,
   sendOtpToEmail,
+  blacklistTokens,
   otpCooldownRedisKey,
+  blacklistAccessToken,
   blacklistRefreshToken,
+  blacklistForgotPassToken,
   sendPasswordResetEmail,
   forgotPassCooldownRedisKey,
   accessTokenBlacklistRedisKey,
   refreshTokenBlacklistRedisKey,
+  forgotPassTokenBlacklistRedisKey,
 };

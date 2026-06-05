@@ -5,8 +5,10 @@ import { AppError } from "@/app/utils/AppError";
 import { checkUserStatus } from "@/app/utils/checkUserStatus";
 import { comparePassword, hashPassword } from "@/app/utils/hash";
 import { generateToken, verifyToken } from "@/app/utils/jwt";
+import { clearAuthCookies, setAuthCookies } from "@/app/utils/setCookie";
 import { createJwtPayload, createUserTokens } from "@/app/utils/userTokens";
 import { AuthProviderName, UserStatus } from "@/generated/prisma/client";
+import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import type { JwtPayload } from "jsonwebtoken";
 import { UserConstants } from "../user/user.constants";
@@ -17,7 +19,10 @@ import { AuthUtils } from "./auth.utils";
 const register = async (input: AuthTypes.TRegisterInput) => {
   const { firstName, lastName, email, password } = input;
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, isVerified: true },
+  });
 
   if (existing) {
     if (existing.isVerified) {
@@ -84,7 +89,10 @@ const resendVerificationCode = async (
 ) => {
   const { email } = input;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, isVerified: true },
+  });
 
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, AuthMessages.USER_NOT_FOUND);
@@ -97,17 +105,6 @@ const resendVerificationCode = async (
     );
   }
 
-  const cooldownKey = AuthUtils.otpCooldownRedisKey(email);
-  const cooldownExists = await redisClient.exists(cooldownKey);
-
-  if (cooldownExists) {
-    const ttl = await redisClient.ttl(cooldownKey);
-    throw new AppError(
-      StatusCodes.TOO_MANY_REQUESTS,
-      `${AuthMessages.RESEND_COOLDOWN} Try again in ${ttl} second(s).`,
-    );
-  }
-
   await AuthUtils.sendOtpToEmail(email);
 
   return { message: AuthMessages.RESEND_SUCCESS };
@@ -116,7 +113,10 @@ const resendVerificationCode = async (
 const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
   const { email, code } = input;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, isVerified: true },
+  });
 
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, AuthMessages.USER_NOT_FOUND);
@@ -143,10 +143,15 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
       verifiedAt: new Date(),
       status: UserStatus.ACTIVE,
     },
+    select: {
+      id: true,
+      email: true,
+    },
   });
 
+  const cooldownKey = AuthUtils.otpCooldownRedisKey(email);
   await redisClient.del(otpKey);
-  await redisClient.del(AuthUtils.otpCooldownRedisKey(email));
+  await redisClient.del(cooldownKey);
 
   return { message: AuthMessages.VERIFY_EMAIL_SUCCESS };
 };
@@ -198,9 +203,19 @@ const login = async (input: AuthTypes.TLoginInput) => {
   };
 };
 
-const refreshToken = async (token: string) => {
+const refreshToken = async (req: Request, res: Response) => {
+  const accessToken: string | undefined = req.cookies?.accessToken;
+  const refreshToken: string | undefined = req.cookies?.refreshToken;
+
+  if (!refreshToken || !accessToken) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      AuthMessages.ACCESS_OR_REFRESH_TOKEN_MISSING,
+    );
+  }
+
   const blacklistRefreshTokenKey =
-    AuthUtils.refreshTokenBlacklistRedisKey(token);
+    AuthUtils.refreshTokenBlacklistRedisKey(refreshToken);
   const isBlacklisted = await redisClient.exists(blacklistRefreshTokenKey);
 
   if (isBlacklisted) {
@@ -213,7 +228,7 @@ const refreshToken = async (token: string) => {
   let verifiedPayload: JwtPayload;
 
   try {
-    verifiedPayload = verifyToken(token, env.jwt.refreshTokenSecret);
+    verifiedPayload = verifyToken(refreshToken, env.jwt.refreshTokenSecret);
   } catch {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
@@ -229,15 +244,15 @@ const refreshToken = async (token: string) => {
       role: true,
       status: true,
       isVerified: true,
-      deletedAt: true,
     },
   });
 
   checkUserStatus(user);
 
-  await AuthUtils.blacklistRefreshToken(token);
+  await AuthUtils.blacklistTokens(req);
 
   const tokens = createUserTokens(user);
+  setAuthCookies(res, tokens);
 
   return {
     message: AuthMessages.REFRESH_TOKEN_SUCCESS,
@@ -245,8 +260,9 @@ const refreshToken = async (token: string) => {
   };
 };
 
-const logout = async (refreshTokenValue: string) => {
-  await AuthUtils.blacklistRefreshToken(refreshTokenValue);
+const logout = async (req: Request, res: Response) => {
+  await AuthUtils.blacklistTokens(req);
+  clearAuthCookies(res);
 
   return {
     message: AuthMessages.LOGOUT_SUCCESS,
@@ -344,6 +360,16 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
 const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
   const { token, newPassword } = input;
 
+  const blacklistKey = AuthUtils.forgotPassTokenBlacklistRedisKey(token);
+  const isBlacklisted = await redisClient.exists(blacklistKey);
+
+  if (isBlacklisted) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
+    );
+  }
+
   let verifiedPayload: JwtPayload;
 
   try {
@@ -374,6 +400,8 @@ const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
     data: { password: hashedPassword },
     select: { id: true, email: true, role: true },
   });
+
+  await AuthUtils.blacklistForgotPassToken(token);
 
   return { message: AuthMessages.RESET_PASSWORD_SUCCESS };
 };
