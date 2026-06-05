@@ -6,9 +6,20 @@ import type {
   TEnvValueType,
 } from "../types/environments";
 import { EnvEnum } from "../types/environments";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 dotenv.config();
+
+const Messages = {
+  MISSING_REQUIRED_ENV_VAR: (name: string) =>
+    `Missing required environment variable "${name}"`,
+  UNDEFINED_ENV_VAR:
+    "Environment variable name is undefined or missing. Please check for typos.",
+  INVALID_JWT_EXPIRES_IN: (name: string) =>
+    `Environment variable "${name}" must be a valid JWT expiration time (e.g.,2ms, 3s, 4m, 5h, 6d, 7w, 8y)`,
+  INVALID_NUMBER: (name: string) =>
+    `Environment variable "${name}" must be a valid number`,
+} as const;
 
 const getEnvVar = <T extends TEnvValueType = "string">(
   name: EnvEnum,
@@ -17,7 +28,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
   if (!name) {
     throw new AppError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      `Environment variable name is undefined or missing. Please check for typos.`,
+      Messages.UNDEFINED_ENV_VAR,
     );
   }
 
@@ -26,7 +37,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
   if (!value || value.trim() === "") {
     throw new AppError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      `Missing required environment variable "${name}"`,
+      Messages.MISSING_REQUIRED_ENV_VAR(name),
     );
   }
 
@@ -37,7 +48,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
       if (Number.isNaN(parsedValue)) {
         throw new AppError(
           StatusCodes.BAD_REQUEST,
-          `Environment variable "${name}" must be a valid number`,
+          Messages.INVALID_NUMBER(name),
         );
       }
 
@@ -52,7 +63,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
       if (!jwtRegex.test(value)) {
         throw new AppError(
           StatusCodes.BAD_REQUEST,
-          `Environment variable "${name}" must be a valid JWT expiration time (e.g.,2ms, 3s, 4m, 5h, 6d, 7w, 8y)`,
+          Messages.INVALID_JWT_EXPIRES_IN(name),
         );
       }
       return value as TEnvReturnType<T>;

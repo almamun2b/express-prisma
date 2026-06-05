@@ -5,14 +5,20 @@ import { StatusCodes } from "http-status-codes";
 import multer, { type FileFilterCallback } from "multer";
 import path from "path";
 import { cloudinary } from "../config/cloudinary";
-import { ErrorCode } from "../types/error";
 import type {
   MultipleDeleteOptions,
   SingleDeleteOptions,
   UploadOptions,
 } from "../types/fileUploads";
-import { AppError } from "./AppError";
+import { AppError } from "./appError";
 import { logger } from "./logger";
+
+const Messages = {
+  ONLY_FILE_TYPES_ARE_ALLOWED: (fileTypes: string[]) =>
+    `Only ${fileTypes.join(", ").toUpperCase()} files are allowed!`,
+  FAILED_TO_DELETE: (filePath: string) => `Failed to delete ${filePath}`,
+  FAILED_TO_UPLOAD: "Failed to upload file to Cloudinary",
+} as const;
 
 const DEFAULT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_ALLOWED_TYPES = ["jpeg", "jpg", "png", "gif", "webp"];
@@ -42,7 +48,7 @@ const handleFileFilter = (
   } else {
     const err = new AppError(
       StatusCodes.BAD_REQUEST,
-      `Only ${allowed.join(", ").toUpperCase()} files are allowed!`,
+      Messages.ONLY_FILE_TYPES_ARE_ALLOWED(allowed),
     );
     callback(err);
   }
@@ -63,7 +69,7 @@ const deleteLocalFile = async (filePath: string) => {
   } catch (err: unknown) {
     const error = err as NodeJS.ErrnoException;
     if (error.code !== "ENOENT") {
-      logger.error(`Failed to delete ${filePath}:`, error);
+      logger.error(Messages.FAILED_TO_DELETE(filePath), error);
     }
   }
 };
@@ -82,7 +88,7 @@ const uploadToCloudinary = async (
 
     return result;
   } catch (error) {
-    logger.error("Cloudinary upload failed:", error);
+    logger.error(Messages.FAILED_TO_UPLOAD, error);
     throw error;
   } finally {
     await deleteLocalFile(file.path);

@@ -1,6 +1,12 @@
 import { StatusCodes } from "http-status-codes";
 import type { TJwtExpiresIn } from "../types/jwt";
-import { AppError } from "./AppError";
+import { AppError } from "./appError";
+import { Codes } from "./codes";
+
+const Messages = {
+  INVALID_EXPIRES_IN_FORMAT: (value: string) =>
+    `Invalid expiresIn format: ${value}`,
+} as const;
 
 /**
  * Converts a JWT `expiresIn` value into milliseconds.
@@ -21,7 +27,8 @@ const expiresInToMs = (value: TJwtExpiresIn): number => {
   if (!match || !match[1]) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      `Invalid expiresIn format: ${value}`,
+      Messages.INVALID_EXPIRES_IN_FORMAT(value),
+      Codes.BAD_REQUEST,
     );
   }
 

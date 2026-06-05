@@ -8,6 +8,12 @@ export interface SendEmailOptions {
   html: string;
 }
 
+const Messages = {
+  FAILED_TO_SEND_EMAIL: (email: string) => `Failed to send email to ${email}:`,
+} as const;
+
+const url = "https://api.brevo.com/v3/smtp/email";
+
 export const sendEmail = async ({
   email,
   subject,
@@ -15,7 +21,7 @@ export const sendEmail = async ({
 }: SendEmailOptions): Promise<any> => {
   try {
     const response = await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
+      url,
       {
         sender: {
           name: "API",
@@ -40,7 +46,7 @@ export const sendEmail = async ({
 
     return response;
   } catch (error) {
-    logger.error(`Failed to send email to ${email}:`, error);
+    logger.error(Messages.FAILED_TO_SEND_EMAIL(email), error);
     throw error;
   }
 };
