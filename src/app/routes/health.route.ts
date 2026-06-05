@@ -4,9 +4,14 @@ import { catchAsync } from "@/app/utils/catchAsync";
 import { sendResponse } from "@/app/utils/sendResponse";
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 const router: Router = Router();
+
+const Messages = {
+  SERVER_HEALTHY: "Server is healthy",
+  DATABASE_CONNECTED: "Database connected successfully",
+} as const;
 
 const healthCheck = catchAsync(async (req, res) => {
   await prisma.$queryRaw`SELECT 1`;
@@ -14,11 +19,11 @@ const healthCheck = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "Server is healthy",
+    message: Messages.SERVER_HEALTHY,
     path: req.originalUrl,
     data: {
       uptime: process.uptime(),
-      database: "connected",
+      database: Messages.DATABASE_CONNECTED,
     },
   });
 });

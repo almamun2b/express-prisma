@@ -1,8 +1,8 @@
 import { env } from "@/app/config/env";
 import { prisma } from "@/app/config/prisma";
-import { AppError } from "@/app/utils/AppError";
+import { AppError } from "@/app/utils/appError";
 import { checkUserStatus } from "@/app/utils/checkUserStatus";
-import { verifyToken } from "@/app/utils/jwt";
+import { verifyToken } from "@/app/utils/token";
 import { UserRole } from "@/generated/prisma/client";
 import type { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";

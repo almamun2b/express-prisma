@@ -8,21 +8,40 @@ import {
   UserStatus,
 } from "@/generated/prisma/client";
 
-async function main() {
-  logger.info("Seeding database...");
+const Messages = {
+  SEEDING_DATABASE: "Seeding database...",
+  SEED_COMPLETED: "Seed completed:",
+  SEED_ERROR: "Seed error:",
+} as const;
 
-  const superAdminPassword = await hashPassword(
-    env.defaultUsers.superAdminPassword,
-  );
+const superAdminData = {
+  email: env.defaultUsers.superAdminEmail,
+  password: env.defaultUsers.superAdminPassword,
+  username: env.defaultUsers.superAdminEmail.split("@")[0] || null,
+  firstName: "Super",
+  lastName: "Admin",
+};
+const adminData = {
+  email: env.defaultUsers.adminEmail,
+  password: env.defaultUsers.adminPassword,
+  username: env.defaultUsers.adminEmail.split("@")[0] || null,
+  firstName: "Admin",
+  lastName: "User",
+};
+
+async function main() {
+  logger.info(Messages.SEEDING_DATABASE);
+
+  const superAdminPassword = await hashPassword(superAdminData.password);
 
   const superAdmin = await prisma.user.upsert({
-    where: { email: env.defaultUsers.superAdminEmail },
+    where: { email: superAdminData.email },
     update: {},
     create: {
-      email: env.defaultUsers.superAdminEmail,
-      username: env.defaultUsers.superAdminEmail.split("@")[0] || null,
-      firstName: "Super",
-      lastName: "Admin",
+      email: superAdminData.email,
+      username: superAdminData.username,
+      firstName: superAdminData.firstName,
+      lastName: superAdminData.lastName,
       password: superAdminPassword,
       role: UserRole.SUPER_ADMIN,
       status: UserStatus.ACTIVE,
@@ -31,23 +50,23 @@ async function main() {
       authProviders: {
         create: {
           provider: AuthProviderName.CREDENTIAL,
-          providerId: env.defaultUsers.superAdminEmail,
+          providerId: superAdminData.email,
         },
       },
     },
     select: { id: true, email: true },
   });
 
-  const adminPassword = await hashPassword(env.defaultUsers.adminPassword);
+  const adminPassword = await hashPassword(adminData.password);
 
   const admin = await prisma.user.upsert({
-    where: { email: env.defaultUsers.adminEmail },
+    where: { email: adminData.email },
     update: {},
     create: {
-      email: env.defaultUsers.adminEmail,
-      username: env.defaultUsers.adminEmail.split("@")[0] || null,
-      firstName: "Admin",
-      lastName: "User",
+      email: adminData.email,
+      username: adminData.username,
+      firstName: adminData.firstName,
+      lastName: adminData.lastName,
       password: adminPassword,
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
@@ -56,14 +75,14 @@ async function main() {
       authProviders: {
         create: {
           provider: AuthProviderName.CREDENTIAL,
-          providerId: env.defaultUsers.adminEmail,
+          providerId: adminData.email,
         },
       },
     },
     select: { id: true, email: true },
   });
 
-  logger.info("Seed completed:", {
+  logger.info(Messages.SEED_COMPLETED, {
     superAdmin: superAdmin.email,
     admin: admin.email,
   });
@@ -74,7 +93,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (error) => {
-    logger.error("Seed error:", error);
+    logger.error(Messages.SEED_ERROR, error);
     await prisma.$disconnect();
     process.exit(1);
   });

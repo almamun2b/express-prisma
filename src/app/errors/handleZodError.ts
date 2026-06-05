@@ -1,14 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
-import {
-  ErrorCode,
-  type IErrorIssue,
-  type IGenericErrorResponse,
-} from "../types/error";
+import type { IErrorIssue, IGenericErrorResponse } from "../types/errors";
+import { Codes } from "../utils/codes";
 
-const zodErrorMessages = {
+const Messages = {
   VALIDATION_ERROR: "One or more fields in your request are invalid.",
-};
+} as const;
 
 const handleZodError = (err: ZodError): IGenericErrorResponse => {
   const errors: IErrorIssue[] = err.issues.map((issue) => {
@@ -22,8 +19,8 @@ const handleZodError = (err: ZodError): IGenericErrorResponse => {
 
   return {
     statusCode,
-    message: zodErrorMessages.VALIDATION_ERROR,
-    code: ErrorCode.VALIDATION_ERROR,
+    message: Messages.VALIDATION_ERROR,
+    code: Codes.VALIDATION_ERROR,
     errors,
   };
 };

@@ -1,18 +1,19 @@
 import { env } from "@/app/config/env";
 import { prisma } from "@/app/config/prisma";
 import { redisClient } from "@/app/config/redis";
-import { AppError } from "@/app/utils/AppError";
+import { AppError } from "@/app/utils/appError";
 import { checkUserStatus } from "@/app/utils/checkUserStatus";
 import { comparePassword, hashPassword } from "@/app/utils/hash";
-import { generateToken, verifyToken } from "@/app/utils/jwt";
+import { redis, RedisConstants } from "@/app/utils/redis";
 import { clearAuthCookies, setAuthCookies } from "@/app/utils/setCookie";
+import { generateToken, verifyToken } from "@/app/utils/token";
 import { createJwtPayload, createUserTokens } from "@/app/utils/userTokens";
 import { AuthProviderName, UserStatus } from "@/generated/prisma/client";
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import type { JwtPayload } from "jsonwebtoken";
 import { UserConstants } from "../user/user.constants";
-import { AuthConstants, AuthMessages } from "./auth.constants";
+import { AuthMessages } from "./auth.constants";
 import type { AuthTypes } from "./auth.types";
 import { AuthUtils } from "./auth.utils";
 
@@ -129,7 +130,7 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
     );
   }
 
-  const otpKey = AuthUtils.otpRedisKey(email);
+  const otpKey = redis.getOtpRedisKey(email);
   const storedOtp = await redisClient.get(otpKey);
 
   if (!storedOtp || storedOtp !== code) {
@@ -149,7 +150,7 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
     },
   });
 
-  const cooldownKey = AuthUtils.otpCooldownRedisKey(email);
+  const cooldownKey = redis.getOtpCooldownRedisKey(email);
   await redisClient.del(otpKey);
   await redisClient.del(cooldownKey);
 
@@ -215,7 +216,7 @@ const refreshToken = async (req: Request, res: Response) => {
   }
 
   const blacklistRefreshTokenKey =
-    AuthUtils.refreshTokenBlacklistRedisKey(refreshToken);
+    redis.getRefreshTokenBlacklistRedisKey(refreshToken);
   const isBlacklisted = await redisClient.exists(blacklistRefreshTokenKey);
 
   if (isBlacklisted) {
@@ -272,7 +273,7 @@ const logout = async (req: Request, res: Response) => {
 const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
   const { email } = input;
 
-  const cooldownKey = AuthUtils.forgotPassCooldownRedisKey(email);
+  const cooldownKey = redis.getForgotPassCooldownRedisKey(email);
   const cooldownExists = await redisClient.exists(cooldownKey);
 
   if (cooldownExists) {
@@ -304,7 +305,7 @@ const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
 
   await redisClient.setEx(
     cooldownKey,
-    AuthConstants.FORGOT_PASS_COOLDOWN_SECONDS,
+    RedisConstants.FORGOT_PASS_COOLDOWN_SECONDS,
     "1",
   );
 
@@ -316,7 +317,7 @@ const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
 const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
   const { email } = input;
 
-  const cooldownKey = AuthUtils.forgotPassCooldownRedisKey(email);
+  const cooldownKey = redis.getForgotPassCooldownRedisKey(email);
   const cooldownExists = await redisClient.exists(cooldownKey);
 
   if (cooldownExists) {
@@ -348,7 +349,7 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
 
   await redisClient.setEx(
     cooldownKey,
-    AuthConstants.FORGOT_PASS_COOLDOWN_SECONDS,
+    RedisConstants.FORGOT_PASS_COOLDOWN_SECONDS,
     "1",
   );
 
@@ -360,7 +361,7 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
 const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
   const { token, newPassword } = input;
 
-  const blacklistKey = AuthUtils.forgotPassTokenBlacklistRedisKey(token);
+  const blacklistKey = redis.getForgotPassTokenBlacklistRedisKey(token);
   const isBlacklisted = await redisClient.exists(blacklistKey);
 
   if (isBlacklisted) {

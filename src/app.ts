@@ -10,6 +10,10 @@ import type { Application, Request, Response } from "express";
 import express from "express";
 import helmet from "helmet";
 
+const Messages = {
+  API_IS_RUNNING: "Express with PostgreSQL API is running successfully!",
+} as const;
+
 const app: Application = express();
 
 app.set("trust proxy", 1);
@@ -32,7 +36,7 @@ app.use(express.json());
 app.get("/", (_req: Request, res: Response) => {
   res.json({
     success: true,
-    message: "Express with PostgreSQL API is running successfully!",
+    message: Messages.API_IS_RUNNING,
     timestamp: new Date().toISOString(),
   });
 });

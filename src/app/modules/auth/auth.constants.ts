@@ -1,19 +1,4 @@
-export const AuthConstants = {
-  OTP_LENGTH: 6,
-  OTP_TTL_SECONDS: 10 * 60,
-  OTP_COOLDOWN_SECONDS: 2 * 60,
-  OTP_TLT_KEY_PREFIX: "otp:",
-  OTP_COOLDOWN_KEY_PREFIX: "otp:cooldown:",
-
-  ACCESS_TOKEN_BLACKLIST_PREFIX: "blacklist:at:",
-  REFRESH_TOKEN_BLACKLIST_PREFIX: "blacklist:rt:",
-  FORGOT_PASS_TOKEN_BLACKLIST_PREFIX: "blacklist:fp:",
-
-  FORGOT_PASS_COOLDOWN_SECONDS: 2 * 60,
-  FORGOT_PASS_COOLDOWN_KEY_PREFIX: "fp:cooldown:",
-} as const;
-
-export const AuthMessages = {
+const AuthMessages = {
   REGISTER_SUCCESS:
     "Registration successful. Please check your email for a verification code.",
   EMAIL_ALREADY_EXISTS: "An account with this email already exists.",
@@ -59,3 +44,5 @@ export const AuthMessages = {
   RESET_PASSWORD_TOKEN_INVALID:
     "The password reset link is invalid or has expired.",
 } as const;
+
+export { AuthMessages };

@@ -1,22 +1,19 @@
 import { Prisma } from "@/generated/prisma/client";
 import { StatusCodes } from "http-status-codes";
-import {
-  ErrorCode,
-  type IErrorIssue,
-  type IGenericErrorResponse,
-} from "../types/error";
+import type { IErrorIssue, IGenericErrorResponse } from "../types/errors";
+import { Codes } from "../utils/codes";
 
-const prismaErrorMessages = {
+const Messages = {
   VALIDATION_ERROR: "The data provided is invalid or incorrectly formatted.",
   DATABASE_ERROR: "A database error occurred while processing your request.",
-};
+} as const;
 
 const handlePrismaValidationError = (
   _err: Prisma.PrismaClientValidationError,
 ): IGenericErrorResponse => {
   const statusCode = StatusCodes.BAD_REQUEST;
-  const message = prismaErrorMessages.VALIDATION_ERROR;
-  const code = ErrorCode.VALIDATION_ERROR;
+  const message = Messages.VALIDATION_ERROR;
+  const code = Codes.VALIDATION_ERROR;
   const errors: IErrorIssue[] = [];
 
   return {

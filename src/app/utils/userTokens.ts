@@ -4,11 +4,16 @@ import type { JwtPayload } from "jsonwebtoken";
 import { env } from "../config/env";
 import { prisma } from "../config/prisma";
 import type { ITokenPayload } from "../types/jwt";
-import { AppError } from "./AppError";
+import { AppError } from "./appError";
 import { checkUserStatus } from "./checkUserStatus";
-import { generateToken, verifyToken } from "./jwt";
+import { Codes } from "./codes";
+import { generateToken, verifyToken } from "./token";
 
 type TokenUser = Pick<User, "id" | "email" | "role">;
+
+const Messages = {
+  INVALID_REFRESH_TOKEN: "Invalid or expired refresh token",
+} as const;
 
 const createJwtPayload = (user: TokenUser): ITokenPayload => ({
   userId: user.id,
@@ -42,7 +47,8 @@ const regenerateTokens = async (refreshToken: string) => {
   } catch {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
-      "Invalid or expired refresh token",
+      Messages.INVALID_REFRESH_TOKEN,
+      Codes.UNAUTHORIZED,
     );
   }
 

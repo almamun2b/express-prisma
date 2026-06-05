@@ -8,27 +8,44 @@ import { connectRedis } from "./app/config/redis";
 let server: Server;
 let isShuttingDown = false;
 
+const Messages = {
+  SHUTTING_DOWN_GRACEFULLY: (signal: string) =>
+    `${signal} received. Shutting down gracefully...`,
+  SERVER_START_SUCCESS: (port: number) =>
+    `Server is running at: http://localhost:${port}`,
+  SERVER_CLOSE: "HTTP server closed",
+  DATABASE_CONNECTION_CLOSE: "Database connection closed",
+  SHUTDOWN_COMPLETE: "Shutdown complete",
+  ERROR_DURING_SHUTDOWN: "Error during graceful shutdown:",
+  CONNECTED_TO_POSTGRESQL_DB: "Successfully connected to PostgreSQL database",
+  FAILED_TO_START_SERVER: "Failed to start server:",
+  UNHANDLED_REJECTION_DETECTED:
+    "Unhandled rejection detected! Server is shutting down:",
+  UNCAUGHT_EXCEPTION_DETECTED:
+    "Uncaught exception detected! Server is shutting down:",
+} as const;
+
 const shutdown = async (signal: string, exitCode = 0) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  logger.info(`${signal} received. Shutting down gracefully...`);
+  logger.info(Messages.SHUTTING_DOWN_GRACEFULLY(signal));
 
   try {
     if (server) {
       await new Promise<void>((resolve, reject) => {
         server.close((err) => (err ? reject(err) : resolve()));
       });
-      logger.info("HTTP server closed");
+      logger.info(Messages.SERVER_CLOSE);
     }
 
     await prisma.$disconnect();
-    logger.info("Database connection closed");
-    logger.info("Shutdown complete");
+    logger.info(Messages.DATABASE_CONNECTION_CLOSE);
+    logger.info(Messages.SHUTDOWN_COMPLETE);
 
     process.exit(exitCode);
   } catch (error) {
-    logger.error("Error during graceful shutdown:", error);
+    logger.error(Messages.ERROR_DURING_SHUTDOWN, error);
     process.exit(1);
   }
 };
@@ -36,13 +53,13 @@ const shutdown = async (signal: string, exitCode = 0) => {
 const bootstrap = async () => {
   try {
     await prisma.$connect();
-    logger.info("Successfully connected to PostgreSQL database");
+    logger.info(Messages.CONNECTED_TO_POSTGRESQL_DB);
 
     server = app.listen(env.port, () => {
-      logger.info(`Server is running at http://localhost:${env.port}`);
+      logger.info(Messages.SERVER_START_SUCCESS(env.port));
     });
   } catch (error) {
-    logger.error("Failed to start server:", error);
+    logger.error(Messages.FAILED_TO_START_SERVER, error);
     await prisma.$disconnect().catch(() => undefined);
     process.exit(1);
   }
@@ -56,12 +73,12 @@ const startServer = async () => {
 startServer();
 
 process.on("unhandledRejection", (error: Error) => {
-  logger.error("Unhandled rejection detected! Server is shutting down:", error);
+  logger.error(Messages.UNHANDLED_REJECTION_DETECTED, error);
   void shutdown("unhandledRejection", 1);
 });
 
 process.on("uncaughtException", (error: Error) => {
-  logger.error("Uncaught exception detected! Server is shutting down:", error);
+  logger.error(Messages.UNCAUGHT_EXCEPTION_DETECTED, error);
   void shutdown("uncaughtException", 1);
 });
 
