@@ -29,6 +29,24 @@ const generateToken = (
   return token;
 };
 
+const extractBearerToken = (authorization?: string): string | undefined => {
+  if (!authorization || typeof authorization !== "string") {
+    return undefined;
+  }
+
+  const [scheme, token] = authorization.trim().split(" ");
+
+  if (scheme?.toLowerCase() === "bearer" && token) {
+    return token;
+  }
+
+  if (scheme && !token) {
+    return scheme;
+  }
+
+  return undefined;
+};
+
 const verifyToken = (token: string, secret: Buffer | Secret) => {
   const verifiedToken = jwt.verify(token, secret);
   if (typeof verifiedToken === "string") {
@@ -93,6 +111,7 @@ const regenerateTokens = async (refreshToken: string) => {
 export {
   createJwtPayload,
   createUserTokens,
+  extractBearerToken,
   generateToken,
   regenerateTokens,
   verifyToken,
