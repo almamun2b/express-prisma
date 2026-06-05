@@ -26,7 +26,7 @@ const Messages = {
   DATABASE_ENGINE_FAILURE: "Database engine failure",
 } as const;
 
-const handlePrismaError = (
+const handlePrismaClientKnownRequestError = (
   err: Prisma.PrismaClientKnownRequestError,
 ): IGenericErrorResponse => {
   let statusCode = StatusCodes.BAD_REQUEST;
@@ -86,4 +86,4 @@ const handlePrismaError = (
   };
 };
 
-export { handlePrismaError };
+export { handlePrismaClientKnownRequestError };
