@@ -3,11 +3,11 @@ import type { ErrorRequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
 import { env } from "../config/env";
-import { handlePrismaError } from "../errors/handlePrismaClientKnownRequestError";
-import { handlePrismaValidationError } from "../errors/handlePrismaValidationError";
-import { handleZodError } from "../errors/handleZodError";
-import type { TCode } from "../types/codes";
-import type { IErrorIssue, IErrorResponse } from "../types/errors";
+import { handlePrismaClientKnownRequestError } from "../errors/prismaClientKnownRequestError.errors";
+import { handlePrismaValidationError } from "../errors/prismaValidationError.errors";
+import { handleZodError } from "../errors/zodError.errors";
+import type { TCode } from "../types/codes.types";
+import type { IErrorIssue, IErrorResponse } from "../types/errors.types";
 import { AppError } from "../utils/appError";
 import { Codes } from "../utils/codes";
 import { logger } from "../utils/logger";
@@ -36,7 +36,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     message = simplifiedError.message;
     errors = simplifiedError.errors;
   } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    const simplifiedError = handlePrismaError(err);
+    const simplifiedError = handlePrismaClientKnownRequestError(err);
     statusCode = simplifiedError.statusCode;
     code = simplifiedError.code ?? Codes.DATABASE_ERROR;
     message = simplifiedError.message;

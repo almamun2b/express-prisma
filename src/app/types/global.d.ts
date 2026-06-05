@@ -1,4 +1,4 @@
-import type { ITokenPayload, TAuthUser } from "./jwt";
+import type { ITokenPayload, TAuthUser } from "./jwt.types";
 
 declare global {
   namespace Express {

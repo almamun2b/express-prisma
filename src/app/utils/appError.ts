@@ -1,4 +1,4 @@
-import type { TCode } from "../types/codes";
+import type { TCode } from "../types/codes.types";
 
 const Messages = {
   SOMETHING_WENT_WRONG: "Something went wrong!",

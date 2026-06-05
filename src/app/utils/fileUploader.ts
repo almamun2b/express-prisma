@@ -9,7 +9,7 @@ import type {
   MultipleDeleteOptions,
   SingleDeleteOptions,
   UploadOptions,
-} from "../types/fileUploads";
+} from "../types/fileUploads.types";
 import { AppError } from "./appError";
 import { logger } from "./logger";
 

@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import type { TJwtExpiresIn } from "../types/jwt";
+import type { TJwtExpiresIn } from "../types/jwt.types";
 import { AppError } from "./appError";
 import { Codes } from "./codes";
 

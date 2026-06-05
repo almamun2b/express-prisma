@@ -1,6 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
 import { StatusCodes } from "http-status-codes";
-import type { IErrorIssue, IGenericErrorResponse } from "../types/errors";
+import type { IErrorIssue, IGenericErrorResponse } from "../types/errors.types";
 import { Codes } from "../utils/codes";
 
 const Messages = {
