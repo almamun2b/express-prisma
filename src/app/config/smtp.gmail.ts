@@ -8,6 +8,10 @@ interface SendEmailOptions {
   html: string;
 }
 
+const Messages = {
+  FAILED_TO_SEND_EMAIL: (email: string) => `Failed to send email to ${email}:`,
+} as const;
+
 const transporter = nodemailer.createTransport({
   host: env.emailSender.host,
   port: env.emailSender.port,
@@ -31,7 +35,7 @@ export const sendEmail = async ({ to, subject, html }: SendEmailOptions) => {
     });
     return info;
   } catch (error) {
-    logger.error(`Failed to send email to ${to}:`, error);
+    logger.error(Messages.FAILED_TO_SEND_EMAIL(to), error);
     throw error;
   }
 };

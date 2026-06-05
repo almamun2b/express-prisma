@@ -1,14 +1,18 @@
-import type { ErrorCode } from "../types/error";
+import type { TCode } from "../types/codes";
+
+const Messages = {
+  SOMETHING_WENT_WRONG: "Something went wrong!",
+} as const;
 
 class AppError extends Error {
   public readonly statusCode: number;
-  public readonly code?: ErrorCode;
+  public readonly code?: TCode;
   public readonly isOperational?: boolean;
 
   constructor(
     statusCode: number,
-    message: string = "Something went wrong!",
-    code?: ErrorCode,
+    message: string = Messages.SOMETHING_WENT_WRONG,
+    code?: TCode,
     isOperational: boolean = true,
     stack?: string,
   ) {

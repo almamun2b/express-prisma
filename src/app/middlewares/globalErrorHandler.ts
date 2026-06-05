@@ -6,76 +6,76 @@ import { env } from "../config/env";
 import { handlePrismaError } from "../errors/handlePrismaClientKnownRequestError";
 import { handlePrismaValidationError } from "../errors/handlePrismaValidationError";
 import { handleZodError } from "../errors/handleZodError";
-import {
-  ErrorCode,
-  type IErrorIssue,
-  type IErrorResponse,
-} from "../types/error";
-import { AppError } from "../utils/AppError";
+import type { TCode } from "../types/codes";
+import type { IErrorIssue, IErrorResponse } from "../types/errors";
+import { AppError } from "../utils/appError";
+import { Codes } from "../utils/codes";
 import { logger } from "../utils/logger";
 
 const isDev = env.nodeEnv === "development";
 
-const GENERIC_SERVER_MESSAGE =
-  "An unexpected error occurred. Please try again later.";
-const DATABASE_SERVER_MESSAGE =
-  "A database error occurred while processing your request.";
-const DATABASE_SERVICE_UNAVAILABLE_MESSAGE = "Database service unavailable";
-const DATABASE_ENGINE_FAILURE_MESSAGE = "Database engine failure";
+const Messages = {
+  GENERIC_SERVER_MESSAGE:
+    "An unexpected error occurred. Please try again later.",
+  DATABASE_SERVER_MESSAGE:
+    "A database error occurred while processing your request.",
+  DATABASE_SERVICE_UNAVAILABLE_MESSAGE: "Database service unavailable",
+  DATABASE_ENGINE_FAILURE_MESSAGE: "Database engine failure",
+} as const;
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   let statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR;
-  let message: string = GENERIC_SERVER_MESSAGE;
-  let code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+  let message: string = Messages.GENERIC_SERVER_MESSAGE;
+  let code: TCode = Codes.INTERNAL_SERVER_ERROR;
   let errors: IErrorIssue[] = [];
 
   if (err instanceof ZodError) {
     const simplifiedError = handleZodError(err);
     statusCode = simplifiedError.statusCode;
-    code = simplifiedError.code ?? ErrorCode.VALIDATION_ERROR;
+    code = simplifiedError.code ?? Codes.VALIDATION_ERROR;
     message = simplifiedError.message;
     errors = simplifiedError.errors;
   } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
     const simplifiedError = handlePrismaError(err);
     statusCode = simplifiedError.statusCode;
-    code = simplifiedError.code ?? ErrorCode.DATABASE_ERROR;
+    code = simplifiedError.code ?? Codes.DATABASE_ERROR;
     message = simplifiedError.message;
     errors = simplifiedError.errors;
   } else if (err instanceof Prisma.PrismaClientValidationError) {
     const simplifiedError = handlePrismaValidationError(err);
     statusCode = simplifiedError.statusCode;
-    code = simplifiedError.code ?? ErrorCode.VALIDATION_ERROR;
+    code = simplifiedError.code ?? Codes.VALIDATION_ERROR;
     message = simplifiedError.message;
     errors = simplifiedError.errors;
   } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
     statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
-    code = ErrorCode.DATABASE_ERROR;
-    message = DATABASE_SERVER_MESSAGE;
+    code = Codes.DATABASE_ERROR;
+    message = Messages.DATABASE_SERVER_MESSAGE;
     errors = [];
   } else if (err instanceof Prisma.PrismaClientInitializationError) {
     statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-    code = ErrorCode.DATABASE_ERROR;
-    message = DATABASE_SERVICE_UNAVAILABLE_MESSAGE;
+    code = Codes.DATABASE_ERROR;
+    message = Messages.DATABASE_SERVICE_UNAVAILABLE_MESSAGE;
     errors = [];
   } else if (err instanceof Prisma.PrismaClientRustPanicError) {
     statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
-    code = ErrorCode.DATABASE_ERROR;
-    message = DATABASE_ENGINE_FAILURE_MESSAGE;
+    code = Codes.DATABASE_ERROR;
+    message = Messages.DATABASE_ENGINE_FAILURE_MESSAGE;
     errors = [];
   } else if (err instanceof AppError) {
     statusCode = err.statusCode;
-    code = err?.code ?? ErrorCode.APP_ERROR;
+    code = err?.code ?? Codes.APP_ERROR;
     message = err.message;
     errors = [];
   } else if (err instanceof Error) {
     statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
-    code = ErrorCode.INTERNAL_SERVER_ERROR;
+    code = Codes.INTERNAL_SERVER_ERROR;
     message = err.message;
     errors = [];
   } else {
     statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
-    code = ErrorCode.UNKNOWN_ERROR;
-    message = err?.message || GENERIC_SERVER_MESSAGE;
+    code = Codes.UNKNOWN_ERROR;
+    message = err?.message || Messages.GENERIC_SERVER_MESSAGE;
     errors = [];
   }
 
