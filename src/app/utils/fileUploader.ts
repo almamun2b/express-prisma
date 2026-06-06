@@ -11,6 +11,7 @@ import type {
   UploadOptions,
 } from "../types/fileUploads.types";
 import { AppError } from "./appError";
+import { Codes } from "./codes";
 import { logger } from "./logger";
 
 const Messages = {
@@ -49,6 +50,7 @@ const handleFileFilter = (
     const err = new AppError(
       StatusCodes.BAD_REQUEST,
       Messages.ONLY_FILE_TYPES_ARE_ALLOWED(allowed),
+      Codes.BAD_REQUEST,
     );
     callback(err);
   }

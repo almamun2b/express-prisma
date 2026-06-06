@@ -1,4 +1,12 @@
-import { createHash, randomInt } from "crypto";
+import { randomInt } from "crypto";
+import { StatusCodes } from "http-status-codes";
+import type { JwtPayload } from "jsonwebtoken";
+import { AppError } from "./appError";
+import { Codes } from "./codes";
+
+const Messages = {
+  INVALID_TOKEN_PAYLOAD: "Invalid token payload",
+} as const;
 
 const RedisConstants = {
   OTP_LENGTH: 6,
@@ -23,28 +31,55 @@ const generateOtp = (): string => {
   return otp;
 };
 
-const getOtpRedisKey = (email: string): string =>
-  `${RedisConstants.OTP_TLT_KEY_PREFIX}${email}`;
-
-const getOtpCooldownRedisKey = (email: string): string =>
-  `${RedisConstants.OTP_COOLDOWN_KEY_PREFIX}${email}`;
-
-const getAccessTokenBlacklistRedisKey = (token: string): string => {
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  return `${RedisConstants.ACCESS_TOKEN_BLACKLIST_PREFIX}${tokenHash}`;
+const getOtpRedisKey = (email: string): string => {
+  return `${RedisConstants.OTP_TLT_KEY_PREFIX}${email}`;
 };
 
-const getRefreshTokenBlacklistRedisKey = (token: string): string => {
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  return `${RedisConstants.REFRESH_TOKEN_BLACKLIST_PREFIX}${tokenHash}`;
+const getOtpCooldownRedisKey = (email: string): string => {
+  return `${RedisConstants.OTP_COOLDOWN_KEY_PREFIX}${email}`;
 };
 
-const getForgotPassCooldownRedisKey = (email: string): string =>
-  `${RedisConstants.FORGOT_PASS_COOLDOWN_KEY_PREFIX}${email}`;
+const getAccessTokenBlacklistRedisKey = (payload: JwtPayload): string => {
+  const jti = payload.jti;
 
-const getForgotPassTokenBlacklistRedisKey = (token: string): string => {
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  return `${RedisConstants.FORGOT_PASS_TOKEN_BLACKLIST_PREFIX}${tokenHash}`;
+  if (!jti) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      Messages.INVALID_TOKEN_PAYLOAD,
+      Codes.UNAUTHORIZED,
+    );
+  }
+  return `${RedisConstants.ACCESS_TOKEN_BLACKLIST_PREFIX}${jti}`;
+};
+
+const getRefreshTokenBlacklistRedisKey = (payload: JwtPayload): string => {
+  const jti = payload.jti;
+
+  if (!jti) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      Messages.INVALID_TOKEN_PAYLOAD,
+      Codes.UNAUTHORIZED,
+    );
+  }
+  return `${RedisConstants.REFRESH_TOKEN_BLACKLIST_PREFIX}${jti}`;
+};
+
+const getForgotPassCooldownRedisKey = (email: string): string => {
+  return `${RedisConstants.FORGOT_PASS_COOLDOWN_KEY_PREFIX}${email}`;
+};
+
+const getForgotPassTokenBlacklistRedisKey = (payload: JwtPayload): string => {
+  const jti = payload.jti;
+
+  if (!jti) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      Messages.INVALID_TOKEN_PAYLOAD,
+      Codes.UNAUTHORIZED,
+    );
+  }
+  return `${RedisConstants.FORGOT_PASS_TOKEN_BLACKLIST_PREFIX}${jti}`;
 };
 
 const redis = {

@@ -1,6 +1,7 @@
 import { UserStatus } from "@/generated/prisma/client";
 import { StatusCodes } from "http-status-codes";
 import { AppError } from "./appError";
+import { Codes } from "./codes";
 
 interface UserStatusData {
   status: UserStatus;
@@ -33,18 +34,42 @@ export function checkUserStatus<T extends UserStatusData>(
   user: T | null | undefined,
 ): asserts user is T {
   if (!user) {
-    throw new AppError(StatusCodes.UNAUTHORIZED, Messages.USER_DOES_NOT_EXIST);
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      Messages.USER_DOES_NOT_EXIST,
+      Codes.UNAUTHORIZED,
+    );
   }
 
   if (user.status === UserStatus.PENDING || !user.isVerified) {
-    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_PENDING);
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      Messages.ACCOUNT_PENDING,
+      Codes.FORBIDDEN,
+    );
   } else if (user.status === UserStatus.INACTIVE) {
-    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_DEACTIVATED);
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      Messages.ACCOUNT_DEACTIVATED,
+      Codes.FORBIDDEN,
+    );
   } else if (user.status === UserStatus.SUSPENDED) {
-    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_SUSPENDED);
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      Messages.ACCOUNT_SUSPENDED,
+      Codes.FORBIDDEN,
+    );
   } else if (user.status === UserStatus.BANNED) {
-    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_BANNED);
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      Messages.ACCOUNT_BANNED,
+      Codes.FORBIDDEN,
+    );
   } else if (user.status === UserStatus.DELETED) {
-    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_DELETED);
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      Messages.ACCOUNT_DELETED,
+      Codes.FORBIDDEN,
+    );
   }
 }

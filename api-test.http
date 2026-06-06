@@ -1,8 +1,18 @@
-# Run with `REST Client` extension for VS Code
+### ============================================
+### Run with `REST Client` extension for VS Code
+### ============================================
+
 
 @baseUrl = http://localhost:5000/api/v1
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
-@refreshToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+@accessToken = accessToken
+@refreshToken = refreshToken
+@email = apitest@tensi.org
+@password = Password1#
+@firstName = John
+@lastName = Doe
+@resetPassToken = resetPassToken
+@newPassword = NewPassword1#
+@verifyEmailOtp = 942176
 
 ### ============================================
 ### HEALTH CHECK
@@ -23,10 +33,10 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "apitest@tensi.org",
-  "password": "Password1#"
+  "firstName": "{{firstName}}",
+  "lastName": "{{lastName}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
 }
 
 ### Resend Verification Code
@@ -34,7 +44,7 @@ POST {{baseUrl}}/auth/resend-verification-code
 Content-Type: application/json
 
 {
-  "email": "apitest@tensi.org"
+  "email": "{{email}}"
 }
 
 ### Verify Email
@@ -42,8 +52,8 @@ POST {{baseUrl}}/auth/verify-email
 Content-Type: application/json
 
 {
-  "email": "apitest@tensi.org",
-  "code": "942176"
+  "email": "{{email}}",
+  "code": "{{verifyEmailOtp}}"
 }
 
 ### Login
@@ -51,33 +61,24 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "apitest@tensi.org",
-  "password": "Password1#"
+  "email": "{{email}}",
+  "password": "{{password}}"
 }
 
 ### Refresh Token
 POST {{baseUrl}}/auth/refresh-token
 Content-Type: application/json
 
-{
-  "refreshToken": "{{refreshToken}}"
-}
-
 ### Logout
 POST {{baseUrl}}/auth/logout
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "refreshToken": "{{refreshToken}}"
-}
 
 ### Forgot Password
 POST {{baseUrl}}/auth/forgot-password
 Content-Type: application/json
 
 {
-  "email": "john@example.com"
+  "email": "{{email}}"
 }
 
 ### Resend Forgot Password
@@ -85,7 +86,7 @@ POST {{baseUrl}}/auth/resend-forgot-password
 Content-Type: application/json
 
 {
-  "email": "john@example.com"
+  "email": "{{email}}"
 }
 
 ### Reset Password
@@ -93,8 +94,8 @@ POST {{baseUrl}}/auth/reset-password
 Content-Type: application/json
 
 {
-  "token": "your_reset_token_from_email",
-  "newPassword": "NewPassword1#"
+  "token": "{{resetPassToken}}",
+  "newPassword": "{{newPassword}}"
 }
 
 ### ============================================
