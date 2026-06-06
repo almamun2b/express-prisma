@@ -3,6 +3,7 @@ import { prisma } from "@/app/config/prisma";
 import { redisClient } from "@/app/config/redis";
 import { AppError } from "@/app/utils/appError";
 import { checkUserStatus } from "@/app/utils/checkUserStatus";
+import { Codes } from "@/app/utils/codes";
 import { comparePassword, hashPassword } from "@/app/utils/hash";
 import { redis, RedisConstants } from "@/app/utils/redis";
 import { clearAuthCookies, setAuthCookies } from "@/app/utils/setCookie";
@@ -34,6 +35,7 @@ const register = async (input: AuthTypes.TRegisterInput) => {
       throw new AppError(
         StatusCodes.CONFLICT,
         AuthMessages.EMAIL_ALREADY_EXISTS,
+        Codes.CONFLICT,
       );
     }
     await AuthUtils.sendOtpToEmail(email);
@@ -100,13 +102,18 @@ const resendVerificationCode = async (
   });
 
   if (!user) {
-    throw new AppError(StatusCodes.NOT_FOUND, AuthMessages.USER_NOT_FOUND);
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      AuthMessages.USER_NOT_FOUND,
+      Codes.NOT_FOUND,
+    );
   }
 
   if (user.isVerified) {
     throw new AppError(
       StatusCodes.CONFLICT,
       AuthMessages.ACCOUNT_ALREADY_VERIFIED,
+      Codes.CONFLICT,
     );
   }
 
@@ -124,13 +131,18 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
   });
 
   if (!user) {
-    throw new AppError(StatusCodes.NOT_FOUND, AuthMessages.USER_NOT_FOUND);
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      AuthMessages.USER_NOT_FOUND,
+      Codes.NOT_FOUND,
+    );
   }
 
   if (user.isVerified) {
     throw new AppError(
       StatusCodes.CONFLICT,
       AuthMessages.ACCOUNT_ALREADY_VERIFIED,
+      Codes.CONFLICT,
     );
   }
 
@@ -138,7 +150,11 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
   const storedOtp = await redisClient.get(otpKey);
 
   if (!storedOtp || storedOtp !== code) {
-    throw new AppError(StatusCodes.BAD_REQUEST, AuthMessages.INVALID_OTP);
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      AuthMessages.INVALID_OTP,
+      Codes.BAD_REQUEST,
+    );
   }
 
   await prisma.user.update({
@@ -180,6 +196,7 @@ const login = async (input: AuthTypes.TLoginInput) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
+      Codes.UNAUTHORIZED,
     );
   }
 
@@ -188,6 +205,7 @@ const login = async (input: AuthTypes.TLoginInput) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
+      Codes.UNAUTHORIZED,
     );
   }
 
@@ -216,6 +234,7 @@ const refreshToken = async (req: Request, res: Response) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.ACCESS_OR_REFRESH_TOKEN_MISSING,
+      Codes.UNAUTHORIZED,
     );
   }
 
@@ -227,6 +246,7 @@ const refreshToken = async (req: Request, res: Response) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.REFRESH_TOKEN_INVALID,
+      Codes.UNAUTHORIZED,
     );
   }
 
@@ -238,6 +258,7 @@ const refreshToken = async (req: Request, res: Response) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.REFRESH_TOKEN_BLACKLISTED,
+      Codes.UNAUTHORIZED,
     );
   }
 
@@ -285,6 +306,7 @@ const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
       `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${ttl} second(s).`,
+      Codes.TOO_MANY_REQUESTS,
     );
   }
 
@@ -329,6 +351,7 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
       `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${ttl} second(s).`,
+      Codes.TOO_MANY_REQUESTS,
     );
   }
 
@@ -373,6 +396,7 @@ const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
+      Codes.BAD_REQUEST,
     );
   }
 
@@ -384,6 +408,7 @@ const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
+      Codes.BAD_REQUEST,
     );
   }
 
@@ -396,6 +421,7 @@ const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
+      Codes.BAD_REQUEST,
     );
   }
 

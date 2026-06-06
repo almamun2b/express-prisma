@@ -12,6 +12,7 @@ import {
   roleHasPermission,
   type Permission,
 } from "../constants/permissions.constants";
+import { Codes } from "../utils/codes";
 
 const Messages = {
   UNAUTHORIZED: "You are not authorized!",
@@ -33,14 +34,22 @@ const checkAuth =
         req.cookies?.accessToken;
 
       if (!token) {
-        throw new AppError(StatusCodes.UNAUTHORIZED, Messages.UNAUTHORIZED);
+        throw new AppError(
+          StatusCodes.UNAUTHORIZED,
+          Messages.UNAUTHORIZED,
+          Codes.UNAUTHORIZED,
+        );
       }
       const verifiedToken = verifyToken(token, env.jwt.accessTokenSecret);
 
       const blacklistKey = redis.getAccessTokenBlacklistRedisKey(verifiedToken);
       const isBlocked = await redisClient.exists(blacklistKey);
       if (isBlocked) {
-        throw new AppError(StatusCodes.UNAUTHORIZED, Messages.TOKEN_REVOKED);
+        throw new AppError(
+          StatusCodes.UNAUTHORIZED,
+          Messages.TOKEN_REVOKED,
+          Codes.UNAUTHORIZED,
+        );
       }
 
       const user = await prisma.user.findUnique({
@@ -57,7 +66,11 @@ const checkAuth =
       checkUserStatus(user);
 
       if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-        throw new AppError(StatusCodes.FORBIDDEN, Messages.FORBIDDEN);
+        throw new AppError(
+          StatusCodes.FORBIDDEN,
+          Messages.FORBIDDEN,
+          Codes.FORBIDDEN,
+        );
       }
 
       req.user = {
@@ -71,12 +84,20 @@ const checkAuth =
     } catch (error) {
       if (isJwtError(error, "TokenExpiredError")) {
         return next(
-          new AppError(StatusCodes.UNAUTHORIZED, Messages.TOKEN_EXPIRED),
+          new AppError(
+            StatusCodes.UNAUTHORIZED,
+            Messages.TOKEN_EXPIRED,
+            Codes.UNAUTHORIZED,
+          ),
         );
       }
       if (isJwtError(error, "JsonWebTokenError")) {
         return next(
-          new AppError(StatusCodes.UNAUTHORIZED, Messages.INVALID_TOKEN),
+          new AppError(
+            StatusCodes.UNAUTHORIZED,
+            Messages.INVALID_TOKEN,
+            Codes.UNAUTHORIZED,
+          ),
         );
       }
       next(error);
@@ -88,12 +109,22 @@ const checkPermission =
   async (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(
-        new AppError(StatusCodes.UNAUTHORIZED, Messages.UNAUTHORIZED),
+        new AppError(
+          StatusCodes.UNAUTHORIZED,
+          Messages.UNAUTHORIZED,
+          Codes.UNAUTHORIZED,
+        ),
       );
     }
 
     if (!roleHasPermission(req.user.role, permission)) {
-      return next(new AppError(StatusCodes.FORBIDDEN, Messages.FORBIDDEN));
+      return next(
+        new AppError(
+          StatusCodes.FORBIDDEN,
+          Messages.FORBIDDEN,
+          Codes.FORBIDDEN,
+        ),
+      );
     }
 
     next();

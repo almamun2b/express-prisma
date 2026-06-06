@@ -46,7 +46,7 @@ const getAccessTokenBlacklistRedisKey = (payload: JwtPayload): string => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       Messages.INVALID_TOKEN_PAYLOAD,
-      Codes.INVALID_TOKEN_PAYLOAD,
+      Codes.UNAUTHORIZED,
     );
   }
   return `${RedisConstants.ACCESS_TOKEN_BLACKLIST_PREFIX}${jti}`;
@@ -59,7 +59,7 @@ const getRefreshTokenBlacklistRedisKey = (payload: JwtPayload): string => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       Messages.INVALID_TOKEN_PAYLOAD,
-      Codes.INVALID_TOKEN_PAYLOAD,
+      Codes.UNAUTHORIZED,
     );
   }
   return `${RedisConstants.REFRESH_TOKEN_BLACKLIST_PREFIX}${jti}`;
@@ -76,7 +76,7 @@ const getForgotPassTokenBlacklistRedisKey = (payload: JwtPayload): string => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       Messages.INVALID_TOKEN_PAYLOAD,
-      Codes.INVALID_TOKEN_PAYLOAD,
+      Codes.UNAUTHORIZED,
     );
   }
   return `${RedisConstants.FORGOT_PASS_TOKEN_BLACKLIST_PREFIX}${jti}`;

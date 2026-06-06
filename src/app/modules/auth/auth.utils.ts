@@ -2,6 +2,7 @@ import { env } from "@/app/config/env";
 import { redisClient } from "@/app/config/redis";
 import { sendEmail } from "@/app/config/smtp.gmail";
 import { AppError } from "@/app/utils/appError";
+import { Codes } from "@/app/utils/codes";
 import {
   getOtpEmailTemplate,
   getPasswordResetEmailTemplate,
@@ -35,6 +36,7 @@ const sendOtpToEmail = async (email: string) => {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
       `${Messages.RESEND_COOLDOWN}`,
+      Codes.TOO_MANY_REQUESTS,
     );
   }
   const otp = redis.generateOtp();
@@ -140,6 +142,7 @@ const blacklistTokens = async (req: Request) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.ACCESS_OR_REFRESH_TOKEN_MISSING,
+      Codes.UNAUTHORIZED,
     );
   }
 
