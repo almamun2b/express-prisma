@@ -219,17 +219,6 @@ const refreshToken = async (req: Request, res: Response) => {
     );
   }
 
-  const blacklistRefreshTokenKey =
-    redis.getRefreshTokenBlacklistRedisKey(refreshToken);
-  const isBlacklisted = await redisClient.exists(blacklistRefreshTokenKey);
-
-  if (isBlacklisted) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      AuthMessages.REFRESH_TOKEN_BLACKLISTED,
-    );
-  }
-
   let verifiedPayload: JwtPayload;
 
   try {
@@ -238,6 +227,17 @@ const refreshToken = async (req: Request, res: Response) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.REFRESH_TOKEN_INVALID,
+    );
+  }
+
+  const blacklistRefreshTokenKey =
+    redis.getRefreshTokenBlacklistRedisKey(verifiedPayload);
+  const isBlacklisted = await redisClient.exists(blacklistRefreshTokenKey);
+
+  if (isBlacklisted) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      AuthMessages.REFRESH_TOKEN_BLACKLISTED,
     );
   }
 
@@ -365,21 +365,22 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
 const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
   const { token, newPassword } = input;
 
-  const blacklistKey = redis.getForgotPassTokenBlacklistRedisKey(token);
-  const isBlacklisted = await redisClient.exists(blacklistKey);
+  let verifiedPayload: JwtPayload;
 
-  if (isBlacklisted) {
+  try {
+    verifiedPayload = verifyToken(token, env.jwt.resetPassSecret);
+  } catch {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
     );
   }
 
-  let verifiedPayload: JwtPayload;
+  const blacklistKey =
+    redis.getForgotPassTokenBlacklistRedisKey(verifiedPayload);
+  const isBlacklisted = await redisClient.exists(blacklistKey);
 
-  try {
-    verifiedPayload = verifyToken(token, env.jwt.resetPassSecret);
-  } catch {
+  if (isBlacklisted) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,

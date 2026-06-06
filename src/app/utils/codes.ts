@@ -13,6 +13,7 @@ const CustomCodes = {
   ENOENT: "ENOENT",
   UNKNOWN_ERROR: "UNKNOWN_ERROR",
   CLOUDINARY_ERROR: "CLOUDINARY_ERROR",
+  INVALID_TOKEN_PAYLOAD: "INVALID_TOKEN_PAYLOAD",
 } as const;
 
 const Codes: CustomCodesType & HttpStatusCodeMap = (() => {

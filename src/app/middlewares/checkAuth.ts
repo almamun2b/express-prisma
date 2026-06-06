@@ -28,20 +28,20 @@ const checkAuth =
   (...allowedRoles: UserRole[]) =>
   async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      const token =
+      const token: string | undefined =
         extractBearerToken(req.headers.authorization) ??
         req.cookies?.accessToken;
 
       if (!token) {
         throw new AppError(StatusCodes.UNAUTHORIZED, Messages.UNAUTHORIZED);
       }
+      const verifiedToken = verifyToken(token, env.jwt.accessTokenSecret);
 
-      const blacklistKey = redis.getAccessTokenBlacklistRedisKey(token);
+      const blacklistKey = redis.getAccessTokenBlacklistRedisKey(verifiedToken);
       const isBlocked = await redisClient.exists(blacklistKey);
       if (isBlocked) {
         throw new AppError(StatusCodes.UNAUTHORIZED, Messages.TOKEN_REVOKED);
       }
-      const verifiedToken = verifyToken(token, env.jwt.accessTokenSecret);
 
       const user = await prisma.user.findUnique({
         where: { id: verifiedToken.userId },

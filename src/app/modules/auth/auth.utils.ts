@@ -80,7 +80,7 @@ const blacklistAccessToken = async (token: string): Promise<void> => {
       const ttlSeconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
       if (ttlSeconds > 0) {
         await redisClient.setEx(
-          redis.getAccessTokenBlacklistRedisKey(token),
+          redis.getAccessTokenBlacklistRedisKey(payload),
           ttlSeconds,
           "1",
         );
@@ -100,7 +100,7 @@ const blacklistRefreshToken = async (token: string): Promise<void> => {
       const ttlSeconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
       if (ttlSeconds > 0) {
         await redisClient.setEx(
-          redis.getRefreshTokenBlacklistRedisKey(token),
+          redis.getRefreshTokenBlacklistRedisKey(payload),
           ttlSeconds,
           "1",
         );
@@ -120,7 +120,7 @@ const blacklistForgotPassToken = async (token: string): Promise<void> => {
       const ttlSeconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
       if (ttlSeconds > 0) {
         await redisClient.setEx(
-          redis.getForgotPassTokenBlacklistRedisKey(token),
+          redis.getForgotPassTokenBlacklistRedisKey(payload),
           ttlSeconds,
           "1",
         );
