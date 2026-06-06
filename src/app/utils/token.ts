@@ -113,5 +113,5 @@ export {
   extractBearerToken,
   generateToken,
   regenerateTokens,
-  verifyToken,
+  verifyToken
 };
