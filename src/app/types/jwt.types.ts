@@ -12,10 +12,10 @@ type TJwtExpiresIn =
   | `${number}w` // weeks
   | `${number}y`; // years
 
-interface ITokenPayload {
+interface JwtUserPayload {
   userId: string;
   email: string;
   role: UserRole;
 }
 
-export type { ITokenPayload, TAuthUser, TJwtExpiresIn };
+export type { JwtUserPayload, TAuthUser, TJwtExpiresIn };

@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import type { IEnv, TEnvReturnType, TEnvValueType } from "../types/env.types";
 import { EnvEnum } from "../types/env.types";
 import { AppError } from "../utils/appError";
+import { Codes } from "../utils/codes";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
     throw new AppError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       Messages.UNDEFINED_ENV_VAR,
+      Codes.INTERNAL_SERVER_ERROR,
     );
   }
 
@@ -34,6 +36,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
     throw new AppError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       Messages.MISSING_REQUIRED_ENV_VAR(name),
+      Codes.INTERNAL_SERVER_ERROR,
     );
   }
 
@@ -45,6 +48,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
         throw new AppError(
           StatusCodes.BAD_REQUEST,
           Messages.INVALID_NUMBER(name),
+          Codes.BAD_REQUEST,
         );
       }
 
@@ -60,6 +64,7 @@ const getEnvVar = <T extends TEnvValueType = "string">(
         throw new AppError(
           StatusCodes.BAD_REQUEST,
           Messages.INVALID_JWT_EXPIRES_IN(name),
+          Codes.BAD_REQUEST,
         );
       }
       return value as TEnvReturnType<T>;

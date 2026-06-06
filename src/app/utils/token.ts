@@ -1,11 +1,11 @@
 import { type User } from "@/generated/prisma/client";
+import { randomUUID } from "crypto";
 import { StatusCodes } from "http-status-codes";
 import type { JwtPayload, Secret } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { prisma } from "../config/prisma";
 import type { TJwtExpiresIn } from "../types/env.types";
-import type { ITokenPayload } from "../types/jwt.types";
 import { AppError } from "./appError";
 import { checkUserStatus } from "./checkUserStatus";
 import { Codes } from "./codes";
@@ -55,23 +55,22 @@ const verifyToken = (token: string, secret: Buffer | Secret) => {
   return verifiedToken;
 };
 
-const createJwtPayload = (user: TokenUser): ITokenPayload => ({
+const createJwtPayload = (user: TokenUser): JwtPayload => ({
   userId: user.id,
   email: user.email,
   role: user.role,
+  jti: randomUUID(),
 });
 
 const createUserTokens = (user: TokenUser) => {
-  const jwtPayload = createJwtPayload(user);
-
   const accessToken = generateToken(
-    jwtPayload,
+    createJwtPayload(user),
     env.jwt.accessTokenSecret,
     env.jwt.accessTokenSecretExpiresIn,
   );
 
   const refreshToken = generateToken(
-    jwtPayload,
+    createJwtPayload(user),
     env.jwt.refreshTokenSecret,
     env.jwt.refreshTokenSecretExpiresIn,
   );
