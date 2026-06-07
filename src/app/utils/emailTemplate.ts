@@ -35,7 +35,10 @@ const getOtpEmailTemplate = (otp: string, expiresIn: string): string => {
  * @param expiresIn - Human readable expiration duration.
  * @returns The HTML string.
  */
-const getPasswordResetEmailTemplate = (resetLink: string, expiresIn: string): string => {
+const getPasswordResetEmailTemplate = (
+  resetLink: string,
+  expiresIn: string,
+): string => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaec; border-radius: 8px; background-color: #ffffff;">
       <h2 style="color: #333333; text-align: center; margin-bottom: 24px;">Reset Your Password</h2>

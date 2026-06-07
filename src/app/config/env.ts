@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import dotenv from "dotenv";
 import { StatusCodes } from "http-status-codes";
 import type { IEnv, TEnvReturnType, TEnvValueType } from "../types/env.types";
@@ -138,7 +139,7 @@ try {
   env = buildEnv();
 } catch (error) {
   if (error instanceof AppError) {
-    console.error(`[env] ${error.message}`);
+    console.error(`[env] Error: ${error.message}\n`, error);
     process.exit(1);
   }
   throw error;

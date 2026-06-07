@@ -24,10 +24,10 @@ const Messages = {
 } as const;
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
-  let statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR;
-  let message: string = Messages.GENERIC_SERVER_MESSAGE;
-  let code: TCode = Codes.INTERNAL_SERVER_ERROR;
-  let errors: IErrorIssue[] = [];
+  let statusCode: number;
+  let message: string;
+  let code: TCode;
+  let errors: IErrorIssue[];
 
   if (err instanceof ZodError) {
     const simplifiedError = handleZodError(err);
