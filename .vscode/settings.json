@@ -1,5 +1,5 @@
 {
-  // "javascript.preferences.importModuleSpecifier": "shortest",
+  "js/ts.preferences.importModuleSpecifier": "shortest",
   "editor.cursorBlinking": "expand",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.cursorStyle": "line-thin",
@@ -8,16 +8,15 @@
   "editor.formatOnSave": true,
   "editor.formatOnType": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  // "editor.codeActionsOnSave": {
-  //   "source.addMissingImports.ts": "always",
-  //   "source.fixAll": "always",
-  //   "source.fixAll.eslint": "always",
-  //   "source.fixAll.ts": "always",
-  //   "source.organizeImports": "always",
-  //   "source.removeUnusedImports": "always",
-  //   "source.sortImports": "always"
-  // },
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.codeActionsOnSave": {
+    "source.addMissingImports.ts": "always",
+    "source.fixAll": "always",
+    "source.fixAll.eslint": "always",
+    "source.fixAll.ts": "always",
+    "source.organizeImports": "always",
+    "source.removeUnusedImports": "always",
+    "source.sortImports": "always"
+  },
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
   }

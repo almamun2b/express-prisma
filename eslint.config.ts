@@ -1,34 +1,67 @@
-import js from "@eslint/js";
-import json from "@eslint/json";
-import { defineConfig } from "eslint/config";
-import globals from "globals";
-import tseslint from "typescript-eslint";
+import js from '@eslint/js';
+import json from '@eslint/json';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import { defineConfig } from 'eslint/config';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    ignores: [
+      'node_modules',
+      'dist',
+      'build',
+      'coverage',
+      'logs',
+      '*.log',
+      '.env',
+      '.env.*',
+      '.vscode',
+      'generated',
+      'prisma/migrations',
+      'pnpm-lock.yaml',
+      'tsconfig.json',
+    ],
+  },
+  {
+    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     plugins: { js },
-    extends: ["js/recommended"],
+    extends: ['js/recommended'],
     languageOptions: { globals: globals.node },
   },
   tseslint.configs.recommended,
   {
-    files: ["**/*.json"],
+    files: ['**/*.json'],
     plugins: { json },
-    language: "json/json",
-    extends: ["json/recommended"],
+    language: 'json/json',
+    extends: ['json/recommended'],
   },
   {
-    files: ["**/*.jsonc"],
+    files: ['**/*.jsonc'],
     plugins: { json },
-    language: "json/jsonc",
-    extends: ["json/recommended"],
+    language: 'json/jsonc',
+    extends: ['json/recommended'],
   },
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "error",
-      "no-console": "warn",
+      // JavaScript
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-unused-vars': 'off',
+      'prefer-const': 'error',
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'all'],
+      'no-var': 'error',
+      'no-process-env': 'off',
+      'default-case': 'error',
+      // TypeScript
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-empty-function': 'warn',
+      '@typescript-eslint/no-empty-interface': 'warn',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
     },
   },
+  eslintConfigPrettier,
 ]);

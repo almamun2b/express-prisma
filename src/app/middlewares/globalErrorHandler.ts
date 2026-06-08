@@ -1,29 +1,29 @@
-import { Prisma } from "@/generated/prisma/client";
-import type { ErrorRequestHandler } from "express";
-import { StatusCodes } from "http-status-codes";
-import { ZodError } from "zod";
-import { env } from "../config/env";
-import { handlePrismaClientKnownRequestError } from "../errors/prismaClientKnownRequestError.errors";
-import { handlePrismaValidationError } from "../errors/prismaValidationError.errors";
-import { handleZodError } from "../errors/zodError.errors";
-import type { TCode } from "../types/codes.types";
-import type { IErrorIssue, IErrorResponse } from "../types/errors.types";
-import { AppError } from "../utils/appError";
-import { Codes } from "../utils/codes";
-import { logger } from "../utils/logger";
+import { Prisma } from '@/generated/prisma/client';
+import type { ErrorRequestHandler } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { ZodError } from 'zod';
+import { env } from '../config/env';
+import { handlePrismaClientKnownRequestError } from '../errors/prismaClientKnownRequestError.errors';
+import { handlePrismaValidationError } from '../errors/prismaValidationError.errors';
+import { handleZodError } from '../errors/zodError.errors';
+import type { TCode } from '../types/codes.types';
+import type { IErrorIssue, IErrorResponse } from '../types/errors.types';
+import { AppError } from '../utils/appError';
+import { Codes } from '../utils/codes';
+import { logger } from '../utils/logger';
 
-const isDev = env.nodeEnv === "development";
+const isDev = env.nodeEnv === 'development';
 
 const Messages = {
-  GENERIC_SERVER_MESSAGE:
-    "An unexpected error occurred. Please try again later.",
-  DATABASE_SERVER_MESSAGE:
-    "A database error occurred while processing your request.",
-  DATABASE_SERVICE_UNAVAILABLE_MESSAGE: "Database service unavailable",
-  DATABASE_ENGINE_FAILURE_MESSAGE: "Database engine failure",
+  GENERIC_SERVER_MESSAGE: 'An unexpected error occurred. Please try again later.',
+  DATABASE_SERVER_MESSAGE: 'A database error occurred while processing your request.',
+  DATABASE_SERVICE_UNAVAILABLE_MESSAGE: 'Database service unavailable',
+  DATABASE_ENGINE_FAILURE_MESSAGE: 'Database engine failure',
 } as const;
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  void _next;
+
   let statusCode: number;
   let message: string;
   let code: TCode;
@@ -86,7 +86,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       path: req.originalUrl,
       ip: req.ip,
       method: req.method,
-      userAgent: req.headers["user-agent"],
+      userAgent: req.headers['user-agent'],
     });
   }
 
@@ -101,7 +101,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   };
 
   if (isDev) {
-    errorBody.error = { name: err?.name || "UnknownError", message };
+    errorBody.error = { name: err?.name || 'UnknownError', message };
     errorBody.stack = err?.stack;
   }
 
