@@ -29,10 +29,10 @@ const Messages = {
 const handlePrismaClientKnownRequestError = (
   err: Prisma.PrismaClientKnownRequestError,
 ): IGenericErrorResponse => {
-  let statusCode = StatusCodes.BAD_REQUEST;
-  let message: string = Messages.DATABASE_ERROR;
-  let code: TCode = Codes.DATABASE_ERROR;
-  let errors: IErrorIssue[] = [];
+  let statusCode: StatusCodes;
+  let message: string;
+  let code: TCode;
+  let errors: IErrorIssue[];
 
   if (err.code === "P2002") {
     statusCode = StatusCodes.CONFLICT;

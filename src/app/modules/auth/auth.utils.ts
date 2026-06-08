@@ -32,7 +32,6 @@ const sendOtpToEmail = async (email: string) => {
   const cooldownExists = await redisClient.exists(cooldownKey);
 
   if (cooldownExists) {
-    const ttl = await redisClient.ttl(cooldownKey);
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
       `${Messages.RESEND_COOLDOWN}`,
