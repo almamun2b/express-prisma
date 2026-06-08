@@ -58,10 +58,10 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*",
-    "generated/**/*",
-    "prisma/**/*",
-    "prisma.config.ts"
+    "generated/**/*.ts",
+    "prisma/**/*.ts",
+    "src/**/*.ts",
+    "*.ts"
   ],
   "exclude": [
     "node_modules",

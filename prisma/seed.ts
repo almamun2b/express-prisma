@@ -1,32 +1,28 @@
-import { env } from "@/app/config/env";
-import { prisma } from "@/app/config/prisma";
-import { hashPassword } from "@/app/utils/hash";
-import { logger } from "@/app/utils/logger";
-import {
-  AuthProviderName,
-  UserRole,
-  UserStatus,
-} from "@/generated/prisma/client";
+import { env } from '@/app/config/env';
+import { prisma } from '@/app/config/prisma';
+import { hashPassword } from '@/app/utils/hash';
+import { logger } from '@/app/utils/logger';
+import { AuthProviderName, UserRole, UserStatus } from '@/generated/prisma/client';
 
 const Messages = {
-  SEEDING_DATABASE: "Seeding database...",
-  SEED_COMPLETED: "Seed completed:",
-  SEED_ERROR: "Seed error:",
+  SEEDING_DATABASE: 'Seeding database...',
+  SEED_COMPLETED: 'Seed completed:',
+  SEED_ERROR: 'Seed error:',
 } as const;
 
 const superAdminData = {
   email: env.defaultUsers.superAdminEmail,
   password: env.defaultUsers.superAdminPassword,
-  username: env.defaultUsers.superAdminEmail.split("@")[0] || null,
-  firstName: "Super",
-  lastName: "Admin",
+  username: env.defaultUsers.superAdminEmail.split('@')[0] ?? null,
+  firstName: 'Super',
+  lastName: 'Admin',
 };
 const adminData = {
   email: env.defaultUsers.adminEmail,
   password: env.defaultUsers.adminPassword,
-  username: env.defaultUsers.adminEmail.split("@")[0] || null,
-  firstName: "Admin",
-  lastName: "User",
+  username: env.defaultUsers.adminEmail.split('@')[0] ?? null,
+  firstName: 'Admin',
+  lastName: 'User',
 };
 
 async function main() {

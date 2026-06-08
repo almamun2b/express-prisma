@@ -1,5 +1,4 @@
 {
-  "js/ts.preferences.importModuleSpecifier": "shortest",
   "editor.cursorBlinking": "expand",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.cursorStyle": "line-thin",
