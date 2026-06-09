@@ -1,4 +1,4 @@
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma } from '@/generated/prisma/client';
 
 const USER_SAFE_SELECT = {
   id: true,

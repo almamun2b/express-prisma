@@ -1,10 +1,3 @@
-/**
- * Generates the HTML template for OTP verification email.
- *
- * @param otp - The verification code.
- * @param expiresIn - Human readable expiration duration (e.g. "10 minutes").
- * @returns The HTML string.
- */
 const getOtpEmailTemplate = (otp: string, expiresIn: string): string => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaec; border-radius: 8px; background-color: #ffffff;">
@@ -28,17 +21,7 @@ const getOtpEmailTemplate = (otp: string, expiresIn: string): string => {
   `;
 };
 
-/**
- * Generates the HTML template for password reset email.
- *
- * @param resetLink - The URL to reset the password.
- * @param expiresIn - Human readable expiration duration.
- * @returns The HTML string.
- */
-const getPasswordResetEmailTemplate = (
-  resetLink: string,
-  expiresIn: string,
-): string => {
+const getPasswordResetEmailTemplate = (resetLink: string, expiresIn: string): string => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaec; border-radius: 8px; background-color: #ffffff;">
       <h2 style="color: #333333; text-align: center; margin-bottom: 24px;">Reset Your Password</h2>

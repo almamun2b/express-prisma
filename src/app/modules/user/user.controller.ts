@@ -1,7 +1,7 @@
-import { catchAsync } from "@/app/utils/catchAsync";
-import { sendResponse } from "@/app/utils/sendResponse";
-import { StatusCodes } from "http-status-codes";
-import { UserServices } from "./user.service";
+import { catchAsync } from '@/app/utils/catchAsync';
+import { sendResponse } from '@/app/utils/sendResponse';
+import { StatusCodes } from 'http-status-codes';
+import { UserServices } from './user.service';
 
 const getAllUsers = catchAsync(async (req, res) => {
   const result = await UserServices.getAllUsersFromDB();
@@ -9,7 +9,7 @@ const getAllUsers = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "Users fetched successfully",
+    message: 'Users fetched successfully',
     path: req.originalUrl,
     data: result,
   });
@@ -22,7 +22,7 @@ const getUserById = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "User fetched successfully",
+    message: 'User fetched successfully',
     path: req.originalUrl,
     data: result,
   });

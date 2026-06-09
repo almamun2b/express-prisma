@@ -1,6 +1,6 @@
 import js from '@eslint/js';
 import json from '@eslint/json';
-import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import prettierConfig from 'eslint-config-prettier';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -20,16 +20,30 @@ export default defineConfig([
       'generated',
       'prisma/migrations',
       'pnpm-lock.yaml',
-      'tsconfig.json',
     ],
   },
   {
+    name: 'recommended-rules',
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     plugins: { js },
-    extends: ['js/recommended'],
-    languageOptions: { globals: globals.node },
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommendedTypeChecked,
+      tseslint.configs.stylisticTypeChecked,
+    ],
+    languageOptions: {
+      globals: globals.node,
+      parserOptions: {
+        projectService: true,
+      },
+    },
+    rules: {
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'default-case': 'error',
+      'prefer-const': 'error',
+      eqeqeq: ['error', 'always'],
+    },
   },
-  tseslint.configs.recommended,
   {
     files: ['**/*.json'],
     plugins: { json },
@@ -42,26 +56,5 @@ export default defineConfig([
     language: 'json/jsonc',
     extends: ['json/recommended'],
   },
-  {
-    rules: {
-      // JavaScript
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-unused-vars': 'off',
-      'prefer-const': 'error',
-      eqeqeq: ['error', 'always'],
-      curly: ['error', 'all'],
-      'no-var': 'error',
-      'no-process-env': 'off',
-      'default-case': 'error',
-      // TypeScript
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
-      '@typescript-eslint/no-empty-function': 'warn',
-      '@typescript-eslint/no-empty-interface': 'warn',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-    },
-  },
-  eslintConfigPrettier,
+  prettierConfig,
 ]);

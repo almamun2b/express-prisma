@@ -1,60 +1,52 @@
-import { checkAuth } from "@/app/middlewares/checkAuth";
-import { validateRequest } from "@/app/middlewares/validateRequest";
-import { UserRole } from "@/generated/prisma/enums";
-import { Router } from "express";
-import { AuthController } from "./auth.controller";
-import { AuthValidation } from "./auth.validation";
+import { checkAuth } from '@/app/middlewares/checkAuth';
+import { validateRequest } from '@/app/middlewares/validateRequest';
+import { UserRole } from '@/generated/prisma/enums';
+import { Router } from 'express';
+import { AuthController } from './auth.controller';
+import { AuthValidation } from './auth.validation';
 
 const router: Router = Router();
 
-router.post(
-  "/register",
-  validateRequest(AuthValidation.registerSchema),
-  AuthController.register,
-);
+router.post('/register', validateRequest(AuthValidation.registerSchema), AuthController.register);
 
 router.post(
-  "/resend-verification-code",
+  '/resend-verification-code',
   validateRequest(AuthValidation.resendVerificationSchema),
-  AuthController.resendVerificationCode,
+  AuthController.resendVerificationCode
 );
 
 router.post(
-  "/verify-email",
+  '/verify-email',
   validateRequest(AuthValidation.verifyEmailSchema),
-  AuthController.verifyEmail,
+  AuthController.verifyEmail
 );
 
-router.post(
-  "/login",
-  validateRequest(AuthValidation.loginSchema),
-  AuthController.login,
-);
+router.post('/login', validateRequest(AuthValidation.loginSchema), AuthController.login);
 
-router.post("/refresh-token", AuthController.refreshToken);
+router.post('/refresh-token', AuthController.refreshToken);
 
 router.post(
-  "/logout",
+  '/logout',
   checkAuth(UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  AuthController.logout,
+  AuthController.logout
 );
 
 router.post(
-  "/forgot-password",
+  '/forgot-password',
   validateRequest(AuthValidation.forgotPasswordSchema),
-  AuthController.forgotPassword,
+  AuthController.forgotPassword
 );
 
 router.post(
-  "/resend-forgot-password",
+  '/resend-forgot-password',
   validateRequest(AuthValidation.forgotPasswordSchema),
-  AuthController.resendForgotPassword,
+  AuthController.resendForgotPassword
 );
 
 router.post(
-  "/reset-password",
+  '/reset-password',
   validateRequest(AuthValidation.resetPasswordSchema),
-  AuthController.resetPassword,
+  AuthController.resetPassword
 );
 
 export const AuthRoutes = router;

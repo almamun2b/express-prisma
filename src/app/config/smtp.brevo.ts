@@ -1,6 +1,6 @@
-import axios from "axios";
-import { logger } from "../utils/logger";
-import { env } from "./env";
+import axios from 'axios';
+import { logger } from '../utils/logger';
+import { env } from './env';
 
 export interface SendEmailOptions {
   email: string;
@@ -12,19 +12,15 @@ const Messages = {
   FAILED_TO_SEND_EMAIL: (email: string) => `Failed to send email to ${email}:`,
 } as const;
 
-const url = "https://api.brevo.com/v3/smtp/email";
+const url = 'https://api.brevo.com/v3/smtp/email';
 
-export const sendEmail = async ({
-  email,
-  subject,
-  html,
-}: SendEmailOptions): Promise<any> => {
+export const sendEmail = async ({ email, subject, html }: SendEmailOptions): Promise<unknown> => {
   try {
     const response = await axios.post(
       url,
       {
         sender: {
-          name: "API",
+          name: 'API',
           email: env.emailSender.email,
         },
         to: [
@@ -37,11 +33,11 @@ export const sendEmail = async ({
       },
       {
         headers: {
-          accept: "application/json",
-          "api-key": env.emailSender.appPass,
-          "content-type": "application/json",
+          accept: 'application/json',
+          'api-key': env.emailSender.appPass,
+          'content-type': 'application/json',
         },
-      },
+      }
     );
 
     return response;

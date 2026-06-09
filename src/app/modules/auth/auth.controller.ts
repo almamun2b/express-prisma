@@ -1,11 +1,19 @@
-import { catchAsync } from "@/app/utils/catchAsync";
-import { sendResponse } from "@/app/utils/sendResponse";
-import { setAuthCookies } from "@/app/utils/setCookie";
-import { StatusCodes } from "http-status-codes";
-import { AuthServices } from "./auth.service";
+import { catchAsync } from '@/app/utils/catchAsync';
+import { sendResponse } from '@/app/utils/sendResponse';
+import { setAuthCookies } from '@/app/utils/setCookie';
+import { StatusCodes } from 'http-status-codes';
+import { AuthServices } from './auth.service';
+import type {
+  TForgotPasswordInput,
+  TLoginInput,
+  TRegisterInput,
+  TResendVerificationInput,
+  TResetPasswordInput,
+  TVerifyEmailInput,
+} from './auth.types';
 
 const register = catchAsync(async (req, res) => {
-  const result = await AuthServices.register(req.body);
+  const result = await AuthServices.register(req.body as TRegisterInput);
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
@@ -16,7 +24,7 @@ const register = catchAsync(async (req, res) => {
 });
 
 const resendVerificationCode = catchAsync(async (req, res) => {
-  const result = await AuthServices.resendVerificationCode(req.body);
+  const result = await AuthServices.resendVerificationCode(req.body as TResendVerificationInput);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -27,7 +35,7 @@ const resendVerificationCode = catchAsync(async (req, res) => {
 });
 
 const verifyEmail = catchAsync(async (req, res) => {
-  const result = await AuthServices.verifyEmail(req.body);
+  const result = await AuthServices.verifyEmail(req.body as TVerifyEmailInput);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -38,7 +46,7 @@ const verifyEmail = catchAsync(async (req, res) => {
 });
 
 const login = catchAsync(async (req, res) => {
-  const result = await AuthServices.login(req.body);
+  const result = await AuthServices.login(req.body as TLoginInput);
 
   setAuthCookies(res, result.tokens);
 
@@ -78,7 +86,7 @@ const logout = catchAsync(async (req, res) => {
 });
 
 const forgotPassword = catchAsync(async (req, res) => {
-  const result = await AuthServices.forgotPassword(req.body);
+  const result = await AuthServices.forgotPassword(req.body as TForgotPasswordInput);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -89,7 +97,7 @@ const forgotPassword = catchAsync(async (req, res) => {
 });
 
 const resendForgotPassword = catchAsync(async (req, res) => {
-  const result = await AuthServices.resendForgotPassword(req.body);
+  const result = await AuthServices.resendForgotPassword(req.body as TForgotPasswordInput);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -100,7 +108,7 @@ const resendForgotPassword = catchAsync(async (req, res) => {
 });
 
 const resetPassword = catchAsync(async (req, res) => {
-  const result = await AuthServices.resetPassword(req.body);
+  const result = await AuthServices.resetPassword(req.body as TResetPasswordInput);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
