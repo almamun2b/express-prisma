@@ -75,12 +75,12 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   } else {
     statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
     code = Codes.UNKNOWN_ERROR;
-    message = err?.message || Messages.GENERIC_SERVER_MESSAGE;
+    message = Messages.GENERIC_SERVER_MESSAGE;
     errors = [];
   }
 
-  if (statusCode >= StatusCodes.INTERNAL_SERVER_ERROR) {
-    logger.error(err, {
+  if (statusCode >= Number(StatusCodes.INTERNAL_SERVER_ERROR)) {
+    logger.error(message, err, {
       statusCode,
       code,
       path: req.originalUrl,
@@ -101,8 +101,10 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   };
 
   if (isDev) {
-    errorBody.error = { name: err?.name || 'UnknownError', message };
-    errorBody.stack = err?.stack;
+    if (err instanceof Error) {
+      errorBody.error = { name: err?.name ?? 'UnknownError', message };
+      errorBody.stack = err?.stack;
+    }
   }
 
   res.status(statusCode).json(errorBody);

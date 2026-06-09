@@ -1,9 +1,5 @@
-import type {
-  AdminAndResourceOptions,
-  DeliveryType,
-  ResourceType,
-} from "cloudinary";
-import type multer from "multer";
+import type { DeliveryType, ResourceType } from 'cloudinary';
+import type multer from 'multer';
 
 // Define specific option types
 interface SingleDeleteOptions {
@@ -12,11 +8,9 @@ interface SingleDeleteOptions {
   invalidate?: boolean;
 }
 
-type MultipleDeleteOptions = AdminAndResourceOptions;
-
 interface UploadOptions extends multer.Options {
   fileTypes: string[];
   fileSize: number;
 }
 
-export type { MultipleDeleteOptions, SingleDeleteOptions, UploadOptions };
+export type { SingleDeleteOptions, UploadOptions };

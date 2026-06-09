@@ -1,11 +1,10 @@
-import { StatusCodes } from "http-status-codes";
-import type { TJwtExpiresIn } from "../types/jwt.types";
-import { AppError } from "./appError";
-import { Codes } from "./codes";
+import { StatusCodes } from 'http-status-codes';
+import type { TJwtExpiresIn } from '../types/jwt.types';
+import { AppError } from './appError';
+import { Codes } from './codes';
 
 const Messages = {
-  INVALID_EXPIRES_IN_FORMAT: (value: string) =>
-    `Invalid expiresIn format: ${value}`,
+  INVALID_EXPIRES_IN_FORMAT: (value: string) => `Invalid expiresIn format: ${value}`,
 } as const;
 
 /**
@@ -22,13 +21,13 @@ const Messages = {
  */
 const expiresInToMs = (value: TJwtExpiresIn): number => {
   const regex = /^(\d+(?:\.\d+)?)(?:\s*)(ms|s|m|h|d|w|y)?$/i;
-  const match = value.match(regex);
+  const match = regex.exec(value);
 
-  if (!match || !match[1]) {
+  if (!match?.[1]) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       Messages.INVALID_EXPIRES_IN_FORMAT(value),
-      Codes.BAD_REQUEST,
+      Codes.BAD_REQUEST
     );
   }
 
@@ -36,19 +35,19 @@ const expiresInToMs = (value: TJwtExpiresIn): number => {
   const unit = match[2]?.toLowerCase();
 
   switch (unit) {
-    case "ms":
+    case 'ms':
       return num;
-    case "s":
+    case 's':
       return num * 1000;
-    case "m":
+    case 'm':
       return num * 60 * 1000;
-    case "h":
+    case 'h':
       return num * 60 * 60 * 1000;
-    case "d":
+    case 'd':
       return num * 24 * 60 * 60 * 1000;
-    case "w":
+    case 'w':
       return num * 7 * 24 * 60 * 60 * 1000;
-    case "y":
+    case 'y':
       return num * 365 * 24 * 60 * 60 * 1000;
     default:
       return num;
@@ -66,19 +65,19 @@ const expiresInToMs = (value: TJwtExpiresIn): number => {
  **/
 
 const formatSeconds = (seconds: number): string => {
-  if (seconds <= 0) return "0 seconds";
+  if (seconds <= 0) return '0 seconds';
   const units = [
-    [60 * 60 * 24 * 365, "year"],
-    [60 * 60 * 24, "day"],
-    [60 * 60, "hour"],
-    [60, "minute"],
-    [1, "second"],
+    [60 * 60 * 24 * 365, 'year'],
+    [60 * 60 * 24, 'day'],
+    [60 * 60, 'hour'],
+    [60, 'minute'],
+    [1, 'second'],
   ] as const;
 
   for (const [unitSeconds, label] of units) {
     if (seconds >= unitSeconds) {
       const value = Math.floor(seconds / unitSeconds);
-      return `${value} ${label}${value > 1 ? "s" : ""}`;
+      return `${value} ${label}${value > 1 ? 's' : ''}`;
     }
   }
 

@@ -43,8 +43,6 @@ export default defineConfig([
       'default-case': 'error',
       'prefer-const': 'error',
       eqeqeq: ['error', 'always'],
-      // curly: ['error', 'all'],
-      '@typescript-eslint/dot-notation': 'off',
     },
   },
   {
