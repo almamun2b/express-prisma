@@ -5,12 +5,12 @@ enum UserRole {
 }
 
 enum UserStatus {
-  PENDING        // Email/phone not verified
-  ACTIVE         // Normal active user
-  INACTIVE       // User deactivated their account
-  SUSPENDED      // Temporarily suspended by admin
-  BANNED         // Permanently banned
-  DELETED        // Soft deleted
+  PENDING // Email/phone not verified
+  ACTIVE // Normal active user
+  INACTIVE // User deactivated their account
+  SUSPENDED // Temporarily suspended by admin
+  BANNED // Permanently banned
+  DELETED // Soft deleted
 }
 
 enum Gender {
@@ -26,14 +26,3 @@ enum AuthProviderName {
   FACEBOOK
   GITHUB
 }
-
-
-// enum OtpPurpose {
-//   REGISTER
-//   FORGOT_PASSWORD
-// }
-
-// enum TokenType {
-//   ACCESS
-//   REFRESH
-// }
