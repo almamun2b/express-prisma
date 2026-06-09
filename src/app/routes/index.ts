@@ -1,21 +1,21 @@
-import { AuthRoutes } from "@/app/modules/auth/auth.route";
-import { UserRoutes } from "@/app/modules/user/user.route";
-import { Router } from "express";
-import { HealthRoutes } from "./health.route";
+import { AuthRoutes } from '@/app/modules/auth/auth.route';
+import { UserRoutes } from '@/app/modules/user/user.route';
+import { Router } from 'express';
+import { HealthRoutes } from './health.route';
 
 const router: Router = Router();
 
 const moduleRoutes = [
   {
-    path: "/health",
+    path: '/health',
     route: HealthRoutes,
   },
   {
-    path: "/user",
+    path: '/user',
     route: UserRoutes,
   },
   {
-    path: "/auth",
+    path: '/auth',
     route: AuthRoutes,
   },
 ];

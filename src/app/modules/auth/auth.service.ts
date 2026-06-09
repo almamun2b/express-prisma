@@ -1,28 +1,36 @@
-import { env } from "@/app/config/env";
-import { prisma } from "@/app/config/prisma";
-import { redisClient } from "@/app/config/redis";
-import { AppError } from "@/app/utils/appError";
-import { checkUserStatus } from "@/app/utils/checkUserStatus";
-import { Codes } from "@/app/utils/codes";
-import { comparePassword, hashPassword } from "@/app/utils/hash";
-import { redis, RedisConstants } from "@/app/utils/redis";
-import { clearAuthCookies, setAuthCookies } from "@/app/utils/setCookie";
+import { env } from '@/app/config/env';
+import { prisma } from '@/app/config/prisma';
+import { redisClient } from '@/app/config/redis';
+import { AppError } from '@/app/utils/appError';
+import { checkUserStatus } from '@/app/utils/checkUserStatus';
+import { Codes } from '@/app/utils/codes';
+import { comparePassword, hashPassword } from '@/app/utils/hash';
+import { redis, RedisConstants } from '@/app/utils/redis';
+import { clearAuthCookies, setAuthCookies } from '@/app/utils/setCookie';
 import {
   createJwtPayload,
   createUserTokens,
+  extractBearerToken,
   generateToken,
   verifyToken,
-} from "@/app/utils/token";
-import { AuthProviderName, UserStatus } from "@/generated/prisma/client";
-import type { Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import type { JwtPayload } from "jsonwebtoken";
-import { UserConstants } from "../user/user.constants";
-import { AuthMessages } from "./auth.constants";
-import type { AuthTypes } from "./auth.types";
-import { AuthUtils } from "./auth.utils";
+} from '@/app/utils/token';
+import { AuthProviderName, UserStatus } from '@/generated/prisma/client';
+import type { Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import type { JwtPayload } from 'jsonwebtoken';
+import { UserConstants } from '../user/user.constants';
+import { AuthMessages } from './auth.constants';
+import type {
+  TForgotPasswordInput,
+  TLoginInput,
+  TRegisterInput,
+  TResendVerificationInput,
+  TResetPasswordInput,
+  TVerifyEmailInput,
+} from './auth.types';
+import { AuthUtils } from './auth.utils';
 
-const register = async (input: AuthTypes.TRegisterInput) => {
+const register = async (input: TRegisterInput) => {
   const { firstName, lastName, email, password } = input;
 
   const existing = await prisma.user.findUnique({
@@ -32,11 +40,7 @@ const register = async (input: AuthTypes.TRegisterInput) => {
 
   if (existing) {
     if (existing.isVerified) {
-      throw new AppError(
-        StatusCodes.CONFLICT,
-        AuthMessages.EMAIL_ALREADY_EXISTS,
-        Codes.CONFLICT,
-      );
+      throw new AppError(StatusCodes.CONFLICT, AuthMessages.EMAIL_ALREADY_EXISTS, Codes.CONFLICT);
     }
     await AuthUtils.sendOtpToEmail(email);
     return { message: AuthMessages.RESEND_SUCCESS };
@@ -91,9 +95,7 @@ const register = async (input: AuthTypes.TRegisterInput) => {
   return { message: AuthMessages.REGISTER_SUCCESS };
 };
 
-const resendVerificationCode = async (
-  input: AuthTypes.TResendVerificationInput,
-) => {
+const resendVerificationCode = async (input: TResendVerificationInput) => {
   const { email } = input;
 
   const user = await prisma.user.findUnique({
@@ -102,19 +104,11 @@ const resendVerificationCode = async (
   });
 
   if (!user) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      AuthMessages.USER_NOT_FOUND,
-      Codes.NOT_FOUND,
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, AuthMessages.USER_NOT_FOUND, Codes.NOT_FOUND);
   }
 
   if (user.isVerified) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      AuthMessages.ACCOUNT_ALREADY_VERIFIED,
-      Codes.CONFLICT,
-    );
+    throw new AppError(StatusCodes.CONFLICT, AuthMessages.ACCOUNT_ALREADY_VERIFIED, Codes.CONFLICT);
   }
 
   await AuthUtils.sendOtpToEmail(email);
@@ -122,7 +116,7 @@ const resendVerificationCode = async (
   return { message: AuthMessages.RESEND_SUCCESS };
 };
 
-const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
+const verifyEmail = async (input: TVerifyEmailInput) => {
   const { email, code } = input;
 
   const user = await prisma.user.findUnique({
@@ -131,30 +125,18 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
   });
 
   if (!user) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      AuthMessages.USER_NOT_FOUND,
-      Codes.NOT_FOUND,
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, AuthMessages.USER_NOT_FOUND, Codes.NOT_FOUND);
   }
 
   if (user.isVerified) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      AuthMessages.ACCOUNT_ALREADY_VERIFIED,
-      Codes.CONFLICT,
-    );
+    throw new AppError(StatusCodes.CONFLICT, AuthMessages.ACCOUNT_ALREADY_VERIFIED, Codes.CONFLICT);
   }
 
   const otpKey = redis.getOtpRedisKey(email);
   const storedOtp = await redisClient.get(otpKey);
 
   if (!storedOtp || storedOtp !== code) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      AuthMessages.INVALID_OTP,
-      Codes.BAD_REQUEST,
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, AuthMessages.INVALID_OTP, Codes.BAD_REQUEST);
   }
 
   await prisma.user.update({
@@ -177,7 +159,7 @@ const verifyEmail = async (input: AuthTypes.TVerifyEmailInput) => {
   return { message: AuthMessages.VERIFY_EMAIL_SUCCESS };
 };
 
-const login = async (input: AuthTypes.TLoginInput) => {
+const login = async (input: TLoginInput) => {
   const { email, password } = input;
 
   const user = await prisma.user.findUnique({
@@ -192,11 +174,11 @@ const login = async (input: AuthTypes.TLoginInput) => {
     },
   });
 
-  if (!user || !user.password) {
+  if (!user?.password) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
-      Codes.UNAUTHORIZED,
+      Codes.UNAUTHORIZED
     );
   }
 
@@ -205,7 +187,7 @@ const login = async (input: AuthTypes.TLoginInput) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
-      Codes.UNAUTHORIZED,
+      Codes.UNAUTHORIZED
     );
   }
 
@@ -227,14 +209,16 @@ const login = async (input: AuthTypes.TLoginInput) => {
 };
 
 const refreshToken = async (req: Request, res: Response) => {
-  const accessToken: string | undefined = req.cookies?.accessToken;
-  const refreshToken: string | undefined = req.cookies?.refreshToken;
+  const accessToken =
+    (req.cookies?.accessToken as string | undefined) ??
+    extractBearerToken(req.headers.authorization);
+  const refreshToken = req.cookies?.refreshToken as string | undefined;
 
   if (!refreshToken || !accessToken) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.ACCESS_OR_REFRESH_TOKEN_MISSING,
-      Codes.UNAUTHORIZED,
+      Codes.UNAUTHORIZED
     );
   }
 
@@ -246,19 +230,18 @@ const refreshToken = async (req: Request, res: Response) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.REFRESH_TOKEN_INVALID,
-      Codes.UNAUTHORIZED,
+      Codes.UNAUTHORIZED
     );
   }
 
-  const blacklistRefreshTokenKey =
-    redis.getRefreshTokenBlacklistRedisKey(verifiedPayload);
+  const blacklistRefreshTokenKey = redis.getRefreshTokenBlacklistRedisKey(verifiedPayload);
   const isBlacklisted = await redisClient.exists(blacklistRefreshTokenKey);
 
   if (isBlacklisted) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.REFRESH_TOKEN_BLACKLISTED,
-      Codes.UNAUTHORIZED,
+      Codes.UNAUTHORIZED
     );
   }
 
@@ -295,7 +278,7 @@ const logout = async (req: Request, res: Response) => {
   };
 };
 
-const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
+const forgotPassword = async (input: TForgotPasswordInput) => {
   const { email } = input;
 
   const cooldownKey = redis.getForgotPassCooldownRedisKey(email);
@@ -306,7 +289,7 @@ const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
       `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${ttl} second(s).`,
-      Codes.TOO_MANY_REQUESTS,
+      Codes.TOO_MANY_REQUESTS
     );
   }
 
@@ -324,23 +307,19 @@ const forgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
   const resetToken = generateToken(
     payload,
     env.jwt.resetPassSecret,
-    env.jwt.resetPassSecretExpiresIn,
+    env.jwt.resetPassSecretExpiresIn
   );
 
   const resetLink = `${env.resetPassLink}?token=${resetToken}`;
 
-  await redisClient.setEx(
-    cooldownKey,
-    RedisConstants.FORGOT_PASS_COOLDOWN_SECONDS,
-    "1",
-  );
+  await redisClient.setEx(cooldownKey, RedisConstants.FORGOT_PASS_COOLDOWN_SECONDS, '1');
 
   await AuthUtils.sendPasswordResetEmail(user.email, resetLink);
 
   return { message: AuthMessages.FORGOT_PASSWORD_SUCCESS };
 };
 
-const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
+const resendForgotPassword = async (input: TForgotPasswordInput) => {
   const { email } = input;
 
   const cooldownKey = redis.getForgotPassCooldownRedisKey(email);
@@ -351,7 +330,7 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
       `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${ttl} second(s).`,
-      Codes.TOO_MANY_REQUESTS,
+      Codes.TOO_MANY_REQUESTS
     );
   }
 
@@ -369,23 +348,19 @@ const resendForgotPassword = async (input: AuthTypes.TForgotPasswordInput) => {
   const resetToken = generateToken(
     payload,
     env.jwt.resetPassSecret,
-    env.jwt.resetPassSecretExpiresIn,
+    env.jwt.resetPassSecretExpiresIn
   );
 
   const resetLink = `${env.resetPassLink}?token=${resetToken}`;
 
-  await redisClient.setEx(
-    cooldownKey,
-    RedisConstants.FORGOT_PASS_COOLDOWN_SECONDS,
-    "1",
-  );
+  await redisClient.setEx(cooldownKey, RedisConstants.FORGOT_PASS_COOLDOWN_SECONDS, '1');
 
   await AuthUtils.sendPasswordResetEmail(user.email, resetLink);
 
   return { message: AuthMessages.RESEND_FORGOT_PASSWORD_SUCCESS };
 };
 
-const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
+const resetPassword = async (input: TResetPasswordInput) => {
   const { token, newPassword } = input;
 
   let verifiedPayload: JwtPayload;
@@ -396,19 +371,18 @@ const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
-      Codes.BAD_REQUEST,
+      Codes.BAD_REQUEST
     );
   }
 
-  const blacklistKey =
-    redis.getForgotPassTokenBlacklistRedisKey(verifiedPayload);
+  const blacklistKey = redis.getForgotPassTokenBlacklistRedisKey(verifiedPayload);
   const isBlacklisted = await redisClient.exists(blacklistKey);
 
   if (isBlacklisted) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
-      Codes.BAD_REQUEST,
+      Codes.BAD_REQUEST
     );
   }
 
@@ -421,7 +395,7 @@ const resetPassword = async (input: AuthTypes.TResetPasswordInput) => {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       AuthMessages.RESET_PASSWORD_TOKEN_INVALID,
-      Codes.BAD_REQUEST,
+      Codes.BAD_REQUEST
     );
   }
 

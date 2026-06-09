@@ -1,4 +1,4 @@
-import type { TCode } from "./codes.types";
+import type { TCode } from './codes.types';
 
 export interface IErrorIssue {
   field?: string | null;
@@ -22,5 +22,5 @@ export interface IErrorResponse extends IGenericErrorResponse {
     message: string;
     rawError?: Error | string;
   };
-  stack?: string;
+  stack?: string | undefined;
 }

@@ -1,6 +1,6 @@
-import { createClient } from "redis";
-import { logger } from "../utils/logger";
-import { env } from "./env";
+import { createClient } from 'redis';
+import { logger } from '../utils/logger';
+import { env } from './env';
 
 const MAX_RECONNECT_ATTEMPTS = 10;
 const MAX_RECONNECT_DELAY = 30000;
@@ -10,12 +10,12 @@ const Messages = {
     `Redis reconnect limit reached (${maxAttempts} attempts).`,
   REDIS_RECONNECTING_ATTEMPT: (retries: number, delay: number) =>
     `Redis reconnect attempt #${retries}. Retrying in ${delay}ms`,
-  REDIS_RECONNECTING: "Redis: reconnecting...",
-  REDIS_CONNECTION_CLOSED: "Redis: connection closed",
-  REDIS_ERROR: "Redis error:",
-  REDIS_ALREADY_CONNECTED: "Redis already connected",
-  REDIS_FAILED_TO_CONNECT: "Failed to connect Redis:",
-  REDIS_CONNECTED: "Successfully connected to Redis",
+  REDIS_RECONNECTING: 'Redis: reconnecting...',
+  REDIS_CONNECTION_CLOSED: 'Redis: connection closed',
+  REDIS_ERROR: 'Redis error:',
+  REDIS_ALREADY_CONNECTED: 'Redis already connected',
+  REDIS_FAILED_TO_CONNECT: 'Failed to connect Redis:',
+  REDIS_CONNECTED: 'Successfully connected to Redis',
 } as const;
 
 const redisClient: ReturnType<typeof createClient> = createClient({
@@ -28,9 +28,7 @@ const redisClient: ReturnType<typeof createClient> = createClient({
 
     reconnectStrategy: (retries: number) => {
       if (retries >= MAX_RECONNECT_ATTEMPTS) {
-        logger.error(
-          Messages.REDIS_RECONNECT_LIMIT_REACHED(MAX_RECONNECT_ATTEMPTS),
-        );
+        logger.error(Messages.REDIS_RECONNECT_LIMIT_REACHED(MAX_RECONNECT_ATTEMPTS));
 
         return false;
       }
@@ -44,15 +42,15 @@ const redisClient: ReturnType<typeof createClient> = createClient({
   },
 });
 
-redisClient.on("reconnecting", () => {
+redisClient.on('reconnecting', () => {
   logger.warn(Messages.REDIS_RECONNECTING);
 });
 
-redisClient.on("end", () => {
+redisClient.on('end', () => {
   logger.warn(Messages.REDIS_CONNECTION_CLOSED);
 });
 
-redisClient.on("error", (error: Error) => {
+redisClient.on('error', (error: Error) => {
   logger.error(Messages.REDIS_ERROR, error);
 });
 

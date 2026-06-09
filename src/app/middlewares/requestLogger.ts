@@ -1,6 +1,6 @@
-import { env } from "@/app/config/env";
-import { logger } from "@/app/utils/logger";
-import type { NextFunction, Request, Response } from "express";
+import { env } from '@/app/config/env';
+import { logger } from '@/app/utils/logger';
+import type { NextFunction, Request, Response } from 'express';
 
 /**
  * Winston-only HTTP request logger (active).
@@ -9,19 +9,17 @@ import type { NextFunction, Request, Response } from "express";
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = process.hrtime.bigint();
 
-  res.on("finish", () => {
+  res.on('finish', () => {
     const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
     const { method, originalUrl } = req;
     const { statusCode } = res;
 
-    if (env.nodeEnv === "development") {
-      logger.http(
-        `${method} ${originalUrl} ${statusCode} - ${durationMs.toFixed(2)} ms`,
-      );
+    if (env.nodeEnv === 'development') {
+      logger.http(`${method} ${originalUrl} ${statusCode} - ${durationMs.toFixed(2)} ms`);
       return;
     }
 
-    logger.info("HTTP request", {
+    logger.info('HTTP request', {
       method,
       url: originalUrl,
       statusCode,

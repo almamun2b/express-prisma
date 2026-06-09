@@ -1,7 +1,7 @@
-import type { TCode } from "../types/codes.types";
+import type { TCode } from '../types/codes.types';
 
 const Messages = {
-  SOMETHING_WENT_WRONG: "Something went wrong!",
+  SOMETHING_WENT_WRONG: 'Something went wrong!',
 } as const;
 
 class AppError extends Error {
@@ -13,8 +13,8 @@ class AppError extends Error {
     statusCode: number,
     message: string = Messages.SOMETHING_WENT_WRONG,
     code?: TCode,
-    isOperational: boolean = true,
-    stack?: string,
+    isOperational = true,
+    stack?: string
   ) {
     super(message);
     this.statusCode = statusCode;

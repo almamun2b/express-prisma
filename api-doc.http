@@ -107,12 +107,3 @@ GET {{baseUrl}}/user
 
 ### Get Single User
 GET {{baseUrl}}/user/9b7a3fa1-6e1c-457d-872b-0b4efedb33e7
-
-### Create User
-POST {{baseUrl}}/user
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com"
-}

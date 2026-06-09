@@ -1,11 +1,7 @@
 {
-  // "typescript.preferences.importModuleSpecifier": "shortest",
-  // "javascript.preferences.importModuleSpecifier": "shortest",
-  "editor.cursorBlinking": "expand",
-  "editor.cursorSmoothCaretAnimation": "on",
-  "editor.cursorStyle": "line-thin",
-  "editor.cursorSurroundingLines": 1,
-  "editor.cursorWidth": 5,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
   "editor.codeActionsOnSave": {
     "source.addMissingImports.ts": "always",
     "source.fixAll": "always",
@@ -13,14 +9,19 @@
     "source.fixAll.ts": "always",
     "source.organizeImports": "always",
     "source.removeUnusedImports": "always",
-    // "source.sort.json": "always",
-    // "source.removeUnused.ts": "explicit",
     "source.sortImports": "always"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.cursorBlinking": "expand",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.cursorStyle": "line-thin",
+  "editor.cursorSurroundingLines": 1,
+  "editor.cursorWidth": 5,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnPaste": false,
   "editor.formatOnSave": true,
-  "[prisma]": {
-    "editor.defaultFormatter": "Prisma.prisma",
-  },
-  // "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.formatOnType": false,
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.cursorWidth": 2,
+  "terminal.integrated.tabs.enabled": true
 }

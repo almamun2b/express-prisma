@@ -1,14 +1,14 @@
-import { prisma } from "@/app/config/prisma";
-import { catchAsync } from "@/app/utils/catchAsync";
-import { sendResponse } from "@/app/utils/sendResponse";
-import { Router } from "express";
-import { StatusCodes } from "http-status-codes";
+import { prisma } from '@/app/config/prisma';
+import { catchAsync } from '@/app/utils/catchAsync';
+import { sendResponse } from '@/app/utils/sendResponse';
+import { Router } from 'express';
+import { StatusCodes } from 'http-status-codes';
 
 const router: Router = Router();
 
 const Messages = {
-  SERVER_HEALTHY: "Server is healthy",
-  DATABASE_CONNECTED: "Database connected successfully",
+  SERVER_HEALTHY: 'Server is healthy',
+  DATABASE_CONNECTED: 'Database connected successfully',
 } as const;
 
 const healthCheck = catchAsync(async (req, res) => {
@@ -26,6 +26,6 @@ const healthCheck = catchAsync(async (req, res) => {
   });
 });
 
-router.get("/", healthCheck);
+router.get('/', healthCheck);
 
 export const HealthRoutes = router;

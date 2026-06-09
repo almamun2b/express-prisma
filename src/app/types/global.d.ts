@@ -1,4 +1,4 @@
-import type { JwtUserPayload, TAuthUser } from "./jwt.types";
+import type { JwtUserPayload, TAuthUser } from './jwt.types';
 
 declare global {
   namespace Express {
@@ -8,8 +8,10 @@ declare global {
   }
 }
 
-declare module "jsonwebtoken" {
-  export interface JwtPayload extends JwtUserPayload {}
+declare module 'jsonwebtoken' {
+  export interface JwtPayload extends JwtUserPayload {
+    jti?: string;
+  }
 }
 
 export {};

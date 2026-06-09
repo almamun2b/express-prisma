@@ -1,7 +1,7 @@
-import { UserStatus } from "@/generated/prisma/client";
-import { StatusCodes } from "http-status-codes";
-import { AppError } from "./appError";
-import { Codes } from "./codes";
+import { UserStatus } from '@/generated/prisma/client';
+import { StatusCodes } from 'http-status-codes';
+import { AppError } from './appError';
+import { Codes } from './codes';
 
 interface UserStatusData {
   status: UserStatus;
@@ -9,12 +9,12 @@ interface UserStatusData {
 }
 
 const Messages = {
-  USER_DOES_NOT_EXIST: "User does not exist",
-  ACCOUNT_PENDING: "Your account is pending. Please verify your email.",
-  ACCOUNT_DEACTIVATED: "Your account has been deactivated.",
-  ACCOUNT_SUSPENDED: "Your account has been suspended, please contact admin.",
-  ACCOUNT_BANNED: "Your account has been banned.",
-  ACCOUNT_DELETED: "Your account has been deleted.",
+  USER_DOES_NOT_EXIST: 'User does not exist',
+  ACCOUNT_PENDING: 'Your account is pending. Please verify your email.',
+  ACCOUNT_DEACTIVATED: 'Your account has been deactivated.',
+  ACCOUNT_SUSPENDED: 'Your account has been suspended, please contact admin.',
+  ACCOUNT_BANNED: 'Your account has been banned.',
+  ACCOUNT_DELETED: 'Your account has been deleted.',
 } as const;
 
 /**
@@ -31,45 +31,21 @@ const Messages = {
  */
 
 export function checkUserStatus<T extends UserStatusData>(
-  user: T | null | undefined,
+  user: T | null | undefined
 ): asserts user is T {
   if (!user) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      Messages.USER_DOES_NOT_EXIST,
-      Codes.UNAUTHORIZED,
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, Messages.USER_DOES_NOT_EXIST, Codes.UNAUTHORIZED);
   }
 
   if (user.status === UserStatus.PENDING || !user.isVerified) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      Messages.ACCOUNT_PENDING,
-      Codes.FORBIDDEN,
-    );
+    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_PENDING, Codes.FORBIDDEN);
   } else if (user.status === UserStatus.INACTIVE) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      Messages.ACCOUNT_DEACTIVATED,
-      Codes.FORBIDDEN,
-    );
+    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_DEACTIVATED, Codes.FORBIDDEN);
   } else if (user.status === UserStatus.SUSPENDED) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      Messages.ACCOUNT_SUSPENDED,
-      Codes.FORBIDDEN,
-    );
+    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_SUSPENDED, Codes.FORBIDDEN);
   } else if (user.status === UserStatus.BANNED) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      Messages.ACCOUNT_BANNED,
-      Codes.FORBIDDEN,
-    );
+    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_BANNED, Codes.FORBIDDEN);
   } else if (user.status === UserStatus.DELETED) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      Messages.ACCOUNT_DELETED,
-      Codes.FORBIDDEN,
-    );
+    throw new AppError(StatusCodes.FORBIDDEN, Messages.ACCOUNT_DELETED, Codes.FORBIDDEN);
   }
 }

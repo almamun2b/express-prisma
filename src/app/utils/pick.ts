@@ -33,10 +33,7 @@ const pick = <T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
  * @param keys - Keys to include in the result.
  * @returns { [P in K]: T[P] } - A new object containing exactly the requested keys.
  */
-const pickInline = <T, K extends keyof T>(
-  obj: T,
-  keys: K[],
-): { [P in K]: T[P] } => {
+const pickInline = <T, K extends keyof T>(obj: T, keys: K[]): { [P in K]: T[P] } => {
   const finalObj = {} as { [P in K]: T[P] };
   for (const key of keys) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -60,21 +57,21 @@ const pickInline = <T, K extends keyof T>(
  * @returns ExpandRecursively<Pick<T, K>> - A new object with fully expanded nested types.
  */
 
-const pickDeep = <T, K extends keyof T>(
+const pickDeep = <T extends object, K extends keyof T>(
   obj: T,
-  keys: K[],
+  keys: readonly K[]
 ): ExpandRecursively<Pick<T, K>> => {
-  const finalObj = {} as ExpandRecursively<Pick<T, K>>;
+  const result = {} as Pick<T, K>;
+
   for (const key of keys) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      finalObj[key] = obj[key] as any;
+      result[key] = obj[key];
     }
   }
-  return finalObj;
+
+  return result as ExpandRecursively<Pick<T, K>>;
 };
 
-type ExpandRecursively<T> = T extends object
-  ? { [K in keyof T]: ExpandRecursively<T[K]> }
-  : T;
+type ExpandRecursively<T> = T extends object ? { [K in keyof T]: ExpandRecursively<T[K]> } : T;
 
 export { pick, pickDeep, pickInline };

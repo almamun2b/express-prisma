@@ -1,42 +1,42 @@
-import { type User } from "@/generated/prisma/client";
-import { randomUUID } from "crypto";
-import { StatusCodes } from "http-status-codes";
-import type { JwtPayload, Secret } from "jsonwebtoken";
-import jwt from "jsonwebtoken";
-import { env } from "../config/env";
-import { prisma } from "../config/prisma";
-import type { TJwtExpiresIn } from "../types/env.types";
-import { AppError } from "./appError";
-import { checkUserStatus } from "./checkUserStatus";
-import { Codes } from "./codes";
+import { type User } from '@/generated/prisma/client';
+import { randomUUID } from 'crypto';
+import { StatusCodes } from 'http-status-codes';
+import type { JwtPayload, Secret } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env';
+import { prisma } from '../config/prisma';
+import type { TJwtExpiresIn } from '../types/env.types';
+import { AppError } from './appError';
+import { checkUserStatus } from './checkUserStatus';
+import { Codes } from './codes';
 
 const Messages = {
-  INVALID_TOKEN_PAYLOAD: "Invalid token payload",
-  INVALID_REFRESH_TOKEN: "Invalid or expired refresh token",
+  INVALID_TOKEN_PAYLOAD: 'Invalid token payload',
+  INVALID_REFRESH_TOKEN: 'Invalid or expired refresh token',
 } as const;
 
-type TokenUser = Pick<User, "id" | "email" | "role">;
+type TokenUser = Pick<User, 'id' | 'email' | 'role'>;
 
 const generateToken = (
   payload: string | object | Buffer,
   secret: Secret | jwt.PrivateKey,
-  expiresIn: TJwtExpiresIn,
+  expiresIn: TJwtExpiresIn
 ) => {
   const token = jwt.sign(payload, secret, {
-    algorithm: "HS256",
+    algorithm: 'HS256',
     expiresIn,
   });
   return token;
 };
 
 const extractBearerToken = (authorization?: string): string | undefined => {
-  if (!authorization || typeof authorization !== "string") {
+  if (!authorization || typeof authorization !== 'string') {
     return undefined;
   }
 
-  const [scheme, token] = authorization.trim().split(" ");
+  const [scheme, token] = authorization.trim().split(' ');
 
-  if (scheme?.toLowerCase() === "bearer" && token) {
+  if (scheme?.toLowerCase() === 'bearer' && token) {
     return token;
   }
 
@@ -49,7 +49,7 @@ const extractBearerToken = (authorization?: string): string | undefined => {
 
 const verifyToken = (token: string, secret: Buffer | Secret) => {
   const verifiedToken = jwt.verify(token, secret);
-  if (typeof verifiedToken === "string") {
+  if (typeof verifiedToken === 'string') {
     throw new Error(Messages.INVALID_TOKEN_PAYLOAD);
   }
   return verifiedToken;
@@ -66,13 +66,13 @@ const createUserTokens = (user: TokenUser) => {
   const accessToken = generateToken(
     createJwtPayload(user),
     env.jwt.accessTokenSecret,
-    env.jwt.accessTokenSecretExpiresIn,
+    env.jwt.accessTokenSecretExpiresIn
   );
 
   const refreshToken = generateToken(
     createJwtPayload(user),
     env.jwt.refreshTokenSecret,
-    env.jwt.refreshTokenSecretExpiresIn,
+    env.jwt.refreshTokenSecretExpiresIn
   );
 
   return { accessToken, refreshToken };
@@ -87,7 +87,7 @@ const regenerateTokens = async (refreshToken: string) => {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       Messages.INVALID_REFRESH_TOKEN,
-      Codes.UNAUTHORIZED,
+      Codes.UNAUTHORIZED
     );
   }
 
@@ -113,5 +113,5 @@ export {
   extractBearerToken,
   generateToken,
   regenerateTokens,
-  verifyToken
+  verifyToken,
 };
