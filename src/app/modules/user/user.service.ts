@@ -1,5 +1,5 @@
-import { prisma } from "@/app/config/prisma";
-import { UserConstants } from "./user.constants";
+import { prisma } from '@/app/config/prisma';
+import { UserConstants } from './user.constants';
 
 const getAllUsersFromDB = async () => {
   const result = await prisma.user.findMany({

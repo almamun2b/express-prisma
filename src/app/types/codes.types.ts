@@ -1,5 +1,5 @@
-import { StatusCodes } from "http-status-codes";
-import { CustomCodes } from "../utils/codes";
+import { StatusCodes } from 'http-status-codes';
+import { CustomCodes } from '../utils/codes';
 
 export type CustomCodesType = typeof CustomCodes;
 type RawStatusCodeKeys = keyof typeof StatusCodes;

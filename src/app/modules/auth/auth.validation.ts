@@ -57,13 +57,6 @@ const resetPasswordSchema = z.object({
   newPassword: passwordField,
 });
 
-// export type TRegisterInput = z.infer<typeof registerSchema>;
-// export type TLoginInput = z.infer<typeof loginSchema>;
-// export type TVerifyEmailInput = z.infer<typeof verifyEmailSchema>;
-// export type TResendVerificationInput = z.infer<typeof resendVerificationSchema>;
-// export type TForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-// export type TResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-
 export const AuthValidation = {
   registerSchema,
   loginSchema,

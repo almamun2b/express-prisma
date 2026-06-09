@@ -7,7 +7,13 @@ import { Codes } from '@/app/utils/codes';
 import { comparePassword, hashPassword } from '@/app/utils/hash';
 import { redis, RedisConstants } from '@/app/utils/redis';
 import { clearAuthCookies, setAuthCookies } from '@/app/utils/setCookie';
-import { createJwtPayload, createUserTokens, generateToken, verifyToken } from '@/app/utils/token';
+import {
+  createJwtPayload,
+  createUserTokens,
+  extractBearerToken,
+  generateToken,
+  verifyToken,
+} from '@/app/utils/token';
 import { AuthProviderName, UserStatus } from '@/generated/prisma/client';
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
@@ -168,7 +174,7 @@ const login = async (input: TLoginInput) => {
     },
   });
 
-  if (!user || !user.password) {
+  if (!user?.password) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
@@ -203,8 +209,10 @@ const login = async (input: TLoginInput) => {
 };
 
 const refreshToken = async (req: Request, res: Response) => {
-  const accessToken: string | undefined = req.cookies?.accessToken;
-  const refreshToken: string | undefined = req.cookies?.refreshToken;
+  const accessToken =
+    (req.cookies?.accessToken as string | undefined) ??
+    extractBearerToken(req.headers.authorization);
+  const refreshToken = req.cookies?.refreshToken as string | undefined;
 
   if (!refreshToken || !accessToken) {
     throw new AppError(

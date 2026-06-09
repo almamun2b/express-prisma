@@ -1,6 +1,6 @@
-import { env } from "@/app/config/env";
-import { logger } from "@/app/utils/logger";
-import nodemailer from "nodemailer";
+import { env } from '@/app/config/env';
+import { logger } from '@/app/utils/logger';
+import nodemailer from 'nodemailer';
 
 interface SendEmailOptions {
   to: string;
@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
     pass: env.emailSender.appPass,
   },
   tls: {
-    rejectUnauthorized: env.nodeEnv !== "development", // Only false in dev/Docker
+    rejectUnauthorized: env.nodeEnv !== 'development', // Only false in dev/Docker
   },
 });
 

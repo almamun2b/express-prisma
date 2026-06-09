@@ -20,7 +20,6 @@ export default defineConfig([
       'generated',
       'prisma/migrations',
       'pnpm-lock.yaml',
-      'tsconfig.json',
     ],
   },
   {
@@ -43,8 +42,6 @@ export default defineConfig([
       'default-case': 'error',
       'prefer-const': 'error',
       eqeqeq: ['error', 'always'],
-      // curly: ['error', 'all'],
-      '@typescript-eslint/dot-notation': 'off',
     },
   },
   {
