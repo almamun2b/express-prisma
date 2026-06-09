@@ -236,8 +236,6 @@ Content-Type: application/json
 A `.http` file is included at the project root for use with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension for VS Code. Update the variables at the top of the file before running requests:
 
 ```
-@accessToken  = <your-access-token>
-@refreshToken = <your-refresh-token>
 @email        = user@example.com
 @password     = Password1#
 ```
@@ -246,4 +244,4 @@ A `.http` file is included at the project root for use with the [REST Client](ht
 
 ## License
 
-ISC
+MIT License
