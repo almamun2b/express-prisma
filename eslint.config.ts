@@ -38,7 +38,7 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
       'default-case': 'error',
       'prefer-const': 'error',
       eqeqeq: ['error', 'always'],
@@ -48,13 +48,13 @@ export default defineConfig([
     files: ['**/*.json'],
     plugins: { json },
     language: 'json/json',
-    extends: ['json/recommended'],
+    extends: [json.configs.recommended],
   },
   {
     files: ['**/*.jsonc'],
     plugins: { json },
     language: 'json/jsonc',
-    extends: ['json/recommended'],
+    extends: [json.configs.recommended],
   },
   prettierConfig,
 ]);
