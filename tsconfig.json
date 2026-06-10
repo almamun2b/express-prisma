@@ -4,24 +4,16 @@
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@/prisma/*": [
-        "prisma/*"
-      ],
-      "@/generated/*": [
-        "generated/*"
-      ]
+      "@/*": ["src/*"],
+      "@/prisma/*": ["prisma/*"],
+      "@/generated/*": ["generated/*"]
     },
     "module": "ESNext",
     "target": "ES2023",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "ignoreDeprecations": "6.0",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -36,14 +28,6 @@
     "skipLibCheck": true,
     "incremental": true
   },
-  "include": [
-    "generated/**/*.ts",
-    "prisma/**/*.ts",
-    "src/**/*.ts",
-    "*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["generated/**/*.ts", "prisma/**/*.ts", "src/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
