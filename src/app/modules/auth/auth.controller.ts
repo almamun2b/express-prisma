@@ -56,8 +56,7 @@ const login = catchAsync(async (req, res) => {
     message: result.message,
     path: req.originalUrl,
     data: {
-      ...result.tokens,
-      user: result.user,
+      ...result.user,
     },
   });
 });
@@ -70,7 +69,6 @@ const refreshToken = catchAsync(async (req, res) => {
     success: true,
     message: result.message,
     path: req.originalUrl,
-    data: result.tokens,
   });
 });
 
