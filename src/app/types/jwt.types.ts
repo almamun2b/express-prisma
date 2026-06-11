@@ -2,15 +2,12 @@ import type { User } from '@/generated/prisma/client';
 import type { UserRole } from '@/generated/prisma/enums';
 
 type TAuthUser = Pick<User, 'id' | 'email' | 'role' | 'status'>;
-
-type TJwtExpiresIn =
-  | `${number}ms` // milliseconds
-  | `${number}s` // seconds
-  | `${number}m` // minutes
-  | `${number}h` // hours
-  | `${number}d` // days
-  | `${number}w` // weeks
-  | `${number}y`; // years
+/**
+ * JWT expiration time string in the format `<number><unit>`.
+ * Supported units: `ms`, `s`, `m`, `h`, `d`, `w`, `y`.
+ * @example '2h', '30d', '1w', '15ms'
+ */
+type TJwtExpiresIn = `${number}${'ms' | 's' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
 
 interface JwtUserPayload {
   userId: string;
