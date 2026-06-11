@@ -75,6 +75,7 @@ const getEnvVar = <T extends TEnvValueType = 'string'>(
 const buildEnv = (): IEnv => ({
   nodeEnv: getEnvVar(EnvEnum.NODE_ENV) as 'development' | 'production',
   port: getEnvVar(EnvEnum.PORT, 'number'),
+  appName: getEnvVar(EnvEnum.APP_NAME),
   databaseUrl: getEnvVar(EnvEnum.DATABASE_URL),
   bcryptSaltRound: getEnvVar(EnvEnum.BCRYPT_SALT_ROUND, 'number'),
   cloudinary: {
@@ -95,13 +96,6 @@ const buildEnv = (): IEnv => ({
     ),
     resetPassSecret: getEnvVar(EnvEnum.JWT_RESET_PASS_SECRET),
     resetPassSecretExpiresIn: getEnvVar(EnvEnum.JWT_RESET_PASS_SECRET_EXPIRES_IN, 'jwt_expires_in'),
-  },
-  openRouter: {
-    apiKey: getEnvVar(EnvEnum.OPEN_ROUTER_API_KEY),
-  },
-  stripe: {
-    secretKey: getEnvVar(EnvEnum.STRIPE_SECRET_KEY),
-    webhookSecret: getEnvVar(EnvEnum.STRIPE_WEBHOOK_SECRET),
   },
   clientUrl: getEnvVar(EnvEnum.CLIENT_URL),
   corsOrigins: getEnvVar(EnvEnum.CORS_ORIGINS, 'array'),
@@ -132,7 +126,7 @@ try {
   env = buildEnv();
 } catch (error) {
   if (error instanceof AppError) {
-    console.error(`[env] Error: ${error.message}\n`, error);
+    console.error(`[env] Error: ${error.message}\n`);
     process.exit(1);
   }
   throw error;

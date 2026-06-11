@@ -3,6 +3,7 @@ import type { TJwtExpiresIn } from './jwt.types';
 interface IEnv {
   nodeEnv: 'development' | 'production';
   port: number;
+  appName: string;
   databaseUrl: string;
   bcryptSaltRound: number;
   cloudinary: {
@@ -17,13 +18,6 @@ interface IEnv {
     refreshTokenSecretExpiresIn: TJwtExpiresIn;
     resetPassSecret: string;
     resetPassSecretExpiresIn: TJwtExpiresIn;
-  };
-  openRouter: {
-    apiKey: string;
-  };
-  stripe: {
-    secretKey: string;
-    webhookSecret: string;
   };
   clientUrl: string;
   corsOrigins: string[];
@@ -51,6 +45,7 @@ interface IEnv {
 enum EnvEnum {
   NODE_ENV = 'NODE_ENV',
   PORT = 'PORT',
+  APP_NAME = 'APP_NAME',
   DATABASE_URL = 'DATABASE_URL',
   BCRYPT_SALT_ROUND = 'BCRYPT_SALT_ROUND',
   CLOUDINARY_CLOUD_NAME = 'CLOUDINARY_CLOUD_NAME',
@@ -62,9 +57,6 @@ enum EnvEnum {
   JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN = 'JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN',
   JWT_RESET_PASS_SECRET = 'JWT_RESET_PASS_SECRET',
   JWT_RESET_PASS_SECRET_EXPIRES_IN = 'JWT_RESET_PASS_SECRET_EXPIRES_IN',
-  OPEN_ROUTER_API_KEY = 'OPEN_ROUTER_API_KEY',
-  STRIPE_SECRET_KEY = 'STRIPE_SECRET_KEY',
-  STRIPE_WEBHOOK_SECRET = 'STRIPE_WEBHOOK_SECRET',
   CLIENT_URL = 'CLIENT_URL',
   CORS_ORIGINS = 'CORS_ORIGINS',
   RESET_PASS_URL = 'RESET_PASS_URL',
