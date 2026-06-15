@@ -17,10 +17,16 @@ const Messages = {
   FAILED_TO_UPLOAD: 'Failed to upload file to Cloudinary',
 } as const;
 
+const DEFAULT_ALLOWED_FILE_TYPE = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+} as const;
 const DEFAULT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
-const DEFAULT_ALLOWED_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
 const UPLOAD_DIR = '/uploads';
-const CLOUDINARY_FOLDER = 'travel-buddy';
+const CLOUDINARY_FOLDER = 'api-template';
 
 const fullUploadDir = path.join(process.cwd(), UPLOAD_DIR);
 
@@ -32,19 +38,21 @@ const handleFileFilter = (
   _req: Request,
   file: Express.Multer.File,
   callback: FileFilterCallback,
-  fileTypes: string[]
-) => {
-  const allowed = fileTypes && fileTypes.length > 0 ? fileTypes : DEFAULT_ALLOWED_TYPES;
-  const allowedTypes = new RegExp(`\\.(${allowed.join('|')})$`, 'i');
-  const mimeMatch = allowedTypes.test(file.mimetype);
-  const extMatch = allowedTypes.test(file.originalname.toLowerCase());
+  fileTypes: Record<string, string> = DEFAULT_ALLOWED_FILE_TYPE
+): void => {
+  const allowedMimes = Object.values(fileTypes);
+  const allowedExts = Object.keys(fileTypes);
 
-  if (mimeMatch && extMatch) {
+  const isAllowedMime = allowedMimes.includes(file.mimetype);
+  const extRegex = new RegExp(`\\.(${allowedExts.join('|')})$`, 'i');
+  const isAllowedExt = extRegex.test(file.originalname.toLowerCase());
+
+  if (isAllowedMime && isAllowedExt) {
     callback(null, true);
   } else {
     const err = new AppError(
       StatusCodes.BAD_REQUEST,
-      Messages.ONLY_FILE_TYPES_ARE_ALLOWED(allowed),
+      Messages.ONLY_FILE_TYPES_ARE_ALLOWED(allowedExts),
       Codes.BAD_REQUEST
     );
     callback(err);
@@ -71,6 +79,29 @@ const deleteLocalFile = async (filePath: string) => {
   }
 };
 
+const upload = multer({
+  storage,
+  fileFilter: handleFileFilter,
+  limits: { fileSize: DEFAULT_MAX_SIZE_BYTES },
+});
+
+const uploadWithOptions = (options?: UploadOptions): multer.Multer => {
+  const { fileTypes = DEFAULT_ALLOWED_FILE_TYPE, ...multerOptions } = options ?? {};
+
+  const fileFilter = (
+    req: Request,
+    file: Express.Multer.File,
+    callback: FileFilterCallback
+  ): void => handleFileFilter(req, file, callback, fileTypes);
+
+  return multer({
+    storage,
+    fileFilter,
+    limits: { fileSize: DEFAULT_MAX_SIZE_BYTES },
+    ...multerOptions,
+  });
+};
+
 const uploadToCloudinary = async (file: Express.Multer.File, options?: UploadApiOptions) => {
   try {
     const result = await cloudinary.uploader.upload(file.path, {
@@ -89,63 +120,28 @@ const uploadToCloudinary = async (file: Express.Multer.File, options?: UploadApi
   }
 };
 
-const upload = (options?: UploadOptions): multer.Multer => {
-  const { fileTypes = DEFAULT_ALLOWED_TYPES, ...multerOptions } = options ?? {};
-
-  const fileFilter = (
-    req: Request,
-    file: Express.Multer.File,
-    callback: FileFilterCallback
-  ): void => handleFileFilter(req, file, callback, fileTypes);
-
-  return multer({
-    storage,
-    fileFilter,
-    limits: { fileSize: DEFAULT_MAX_SIZE_BYTES },
-    ...multerOptions,
-  });
-};
-
 const uploadMultipleToCloudinary = async (files: Express.Multer.File[]) => {
   const uploadPromises = files.map((file) => uploadToCloudinary(file));
   return Promise.all(uploadPromises);
 };
 
-function deleteAssets(publicId: string, options?: SingleDeleteOptions): Promise<{ result: string }>;
-
-function deleteAssets(
-  publicIds: string[],
-  options?: AdminAndResourceOptions
-): Promise<{ result: string }>;
-
-function deleteAssets(
-  publicIds: string | string[],
-  options: SingleDeleteOptions | AdminAndResourceOptions = {}
-): Promise<{ result: string }> {
-  if (Array.isArray(publicIds)) {
-    return cloudinary.api.delete_resources(publicIds, options as AdminAndResourceOptions);
-  } else {
-    return cloudinary.uploader.destroy(publicIds, options as SingleDeleteOptions);
-  }
-}
-
-function deleteSingleAsset(
+const deleteSingleAsset = (
   publicId: string,
   options: SingleDeleteOptions = {}
-): Promise<{ result: string }> {
+): Promise<{ result: string }> => {
   return cloudinary.uploader.destroy(publicId, options);
-}
+};
 
-export function deleteMultipleAssets(
+const deleteMultipleAssets = (
   publicIds: string[],
   options: AdminAndResourceOptions = {}
-): Promise<{ result: string }> {
+): Promise<{ result: string }> => {
   return cloudinary.api.delete_resources(publicIds, options);
-}
+};
 
 export const fileUploader = {
   upload,
-  deleteAssets,
+  uploadWithOptions,
   deleteSingleAsset,
   deleteMultipleAssets,
   uploadToCloudinary,

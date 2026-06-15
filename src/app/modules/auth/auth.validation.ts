@@ -64,4 +64,5 @@ export const AuthValidation = {
   resendVerificationSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  passwordField,
 };
