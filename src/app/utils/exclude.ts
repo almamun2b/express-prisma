@@ -24,4 +24,46 @@ const exclude = <T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
   return finalObj;
 };
 
-export { exclude };
+/**
+ * Transforms an object type by:
+ * - Removing `undefined` from property value types.
+ * - Converting properties that can be `undefined` into optional properties.
+ * - Preserving required properties that cannot be `undefined`.
+ */
+type ExcludeUndefined<T> = {
+  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
+} & {
+  [K in keyof T as undefined extends T[K] ? never : K]: T[K];
+};
+
+/**
+ * Removes properties with `undefined` values from an object.
+ *
+ * - Properties that can be `undefined` become optional with `undefined` excluded.
+ * - Properties that cannot be `undefined` remain required.
+ *
+ * @template T - The source object type.
+ * @param obj - The object to sanitize.
+ * @returns A new object without `undefined` values.
+ *
+ * @example
+ * type User = {
+ *   id: number;
+ *   name?: string;
+ *   age: number | undefined;
+ * };
+ *
+ * const user: User = { id: 1, name: undefined, age: undefined };
+ * const result = excludeUndefined(user);
+ *
+ * // Result type:
+ * // { id: number; name?: string; age?: number }
+ * // Result value:
+ * // { id: 1 }
+ */
+const excludeUndefined = <T extends Record<string, unknown>>(obj: T): ExcludeUndefined<T> => {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined)
+  ) as ExcludeUndefined<T>;
+};
+export { exclude, excludeUndefined };

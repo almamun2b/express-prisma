@@ -11,7 +11,7 @@ const moduleRoutes = [
     route: HealthRoutes,
   },
   {
-    path: '/user',
+    path: '/users',
     route: UserRoutes,
   },
   {

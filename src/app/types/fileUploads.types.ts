@@ -8,8 +8,7 @@ interface SingleDeleteOptions {
 }
 
 interface UploadOptions extends multer.Options {
-  fileTypes: string[];
-  fileSize: number;
+  fileTypes?: Record<string, string>;
 }
 
 export type { SingleDeleteOptions, UploadOptions };
