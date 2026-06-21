@@ -29,7 +29,7 @@
 ### 🏗️ **Core Architecture**
 
 - **Strict Type Safety**: Full TypeScript strict mode with enforced type checking across the entire codebase
-- **Advanced QueryBuilder**: Dynamic, type-safe query builder supporting filtering, searching, range queries, and cursor/offset pagination
+- **Advanced QueryBuilder(On Going)**: Dynamic, type-safe query builder supporting filtering, searching, range queries, and cursor/offset pagination
 - **Layered Architecture**: Clean separation of concerns (controllers, services, routes, middlewares, utilities)
 - **Global Error Handling**: Unified middleware for operational vs. programming error classification with custom error codes
 - **Request Validation**: Zod-based schema validation for type-safe request/response contracts
