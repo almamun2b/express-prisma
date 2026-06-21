@@ -17,6 +17,7 @@ It wraps `findMany` and `count` calls with a fluent, chainable API that supports
   - [`.where()`](#where)
   - [`.sortBy()`](#sortby)
   - [`.paginate()`](#paginate)
+  - [`.cursorPaginate()`](#cursorpaginate)
   - [`.select()`](#select)
   - [`.include()`](#include)
   - [`.custom()`](#custom)
@@ -24,6 +25,7 @@ It wraps `findMany` and `count` calls with a fluent, chainable API that supports
   - [`.execute()`](#execute)
   - [`.count()`](#count)
   - [`.executeWithMeta()`](#executewithmeta)
+  - [`.executeWithCursor()`](#executewithcursor)
 - [Usage Examples — Individual Methods](#-usage-examples--individual-methods)
 - [Usage Examples — Grouped & Real-World](#-usage-examples--grouped--real-world)
 - [How Conditions Are Combined](#-how-conditions-are-combined)
@@ -391,6 +393,74 @@ const users = await new QueryBuilder(prisma.user).paginate({}).execute();
 
 ---
 
+### `.cursorPaginate()`
+
+```ts
+.cursorPaginate({ cursor, limit, direction, cursorField })
+```
+
+Configures **cursor-based ("seek") pagination** — the scalable alternative to offset pagination for large or frequently-changing datasets. Instead of `skip`/`take`, it seeks from a stable cursor value, so deep pages stay fast and rows don't shift when records are inserted/deleted between requests.
+
+Pair it with [`.executeWithCursor()`](#executewithcursor) to run the query and receive `next`/`prev` cursors. Offset [`.paginate()`](#paginate) is **untouched** — both styles coexist; if both are configured, `.cursorPaginate()` wins.
+
+| Parameter     | Type                      | Default     | Description                                                                                   |
+| ------------- | ------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| `cursor`      | `string \| undefined`     | —           | Cursor value from a previous page's `nextCursor`/`prevCursor`. Omit for the **first** page.   |
+| `limit`       | `number`                  | `10`        | Page size (number of rows to return).                                                         |
+| `direction`   | `'forward' \| 'backward'` | `'forward'` | `'forward'` → next page, `'backward'` → previous page.                                        |
+| `cursorField` | `string` (inferred)       | `'id'`      | The **unique, sequential** column to seek on. Pair with a matching `.sortBy()` for stability. |
+
+**First page (no cursor):**
+
+```ts
+const { data, meta } = await new QueryBuilder(prisma.user)
+  .sortBy({ sortBy: 'id', sortOrder: 'asc' })
+  .cursorPaginate({ limit: 20 })
+  .executeWithCursor();
+
+// meta.nextCursor → pass this to fetch the next page
+// meta.hasPrevPage === false (we're on the first page)
+```
+
+**Next page (forward):**
+
+```ts
+const { data, meta } = await new QueryBuilder(prisma.user)
+  .sortBy({ sortBy: 'id', sortOrder: 'asc' })
+  .cursorPaginate({ limit: 20, cursor: previousMeta.nextCursor!, direction: 'forward' })
+  .executeWithCursor();
+```
+
+**Previous page (backward):**
+
+```ts
+const { data, meta } = await new QueryBuilder(prisma.user)
+  .sortBy({ sortBy: 'id', sortOrder: 'asc' })
+  .cursorPaginate({ limit: 20, cursor: currentMeta.prevCursor!, direction: 'backward' })
+  .executeWithCursor();
+
+// Rows are returned in the SAME sort order as forward pagination,
+// even though Prisma fetches them backwards under the hood.
+```
+
+**Seeking on a custom field:**
+
+```ts
+// Paginate by createdAt instead of id
+const { data, meta } = await new QueryBuilder(prisma.user)
+  .sortBy({ sortBy: 'createdAt', sortOrder: 'desc' })
+  .cursorPaginate({ limit: 50, cursorField: 'createdAt' })
+  .executeWithCursor();
+```
+
+> [!TIP]
+> Under the hood, `.cursorPaginate()` over-fetches **one extra row** (`take: limit + 1`) to detect whether another page exists, sets Prisma's `cursor` + `skip: 1` (to exclude the cursor row itself), and uses a **negative `take`** for `'backward'` direction.
+
+> [!IMPORTANT]
+> Always order by the same column you set as `cursorField` (via `.sortBy()`) so the seek is deterministic. The default `cursorField` is `'id'`.
+
+---
+
 ### `.select()`
 
 ```ts
@@ -606,6 +676,47 @@ console.log(data.length); // max 15
 
 ---
 
+### `.executeWithCursor()`
+
+```ts
+async .executeWithCursor(): Promise<{ meta: CursorMeta; data: Result[] }>
+```
+
+Executes a **cursor-paginated** query (configured via [`.cursorPaginate()`](#cursorpaginate)) and returns the page rows plus forward/backward cursors. Rows are always returned in the configured sort order, regardless of `direction`. The `data` type is narrowed by `.select()`/`.include()` exactly like `.execute()`.
+
+If `.cursorPaginate()` was not called, it defaults to a first forward page of `limit: 10` on `id`.
+
+```ts
+interface CursorMeta {
+  limit: number;
+  nextCursor: string | null; // pass as `cursor` (forward) for the next page
+  prevCursor: string | null; // pass as `cursor` + direction:'backward' for the previous page
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+```
+
+**Individual Example:**
+
+```ts
+const { meta, data } = await new QueryBuilder(prisma.user)
+  .filter({ status: 'ACTIVE' })
+  .sortBy({ sortBy: 'id', sortOrder: 'asc' })
+  .cursorPaginate({ limit: 10 })
+  .select({ id: true, email: true })
+  .executeWithCursor();
+
+console.log(meta);
+// { limit: 10, nextCursor: 'ckx...', prevCursor: 'cka...', hasNextPage: true, hasPrevPage: false }
+
+console.log(data.length); // max 10
+```
+
+> [!NOTE]
+> `nextCursor`/`prevCursor` are the `cursorField` values of the **last**/**first** row of the current page. Use `nextCursor` with `direction: 'forward'` and `prevCursor` with `direction: 'backward'`.
+
+---
+
 ## 🧩 Usage Examples — Grouped & Real-World
 
 ### Example 1: Full User Listing Service (from `user.service.ts`)
@@ -757,7 +868,58 @@ const data = await qb.execute();
 
 ---
 
-### Example 7: Cursor-Based Pagination with `.custom()`
+### Example 7: Cursor Pagination Service (from `user.service.ts`)
+
+The production implementation behind `GET /api/v1/users/cursor` — next/previous page navigation with no `OFFSET` scan:
+
+```ts
+const getAllUsersWithCursor = async (query: TUserQueryOptions = {}) => {
+  const {
+    limit = 10,
+    sortOrder = 'desc',
+    cursor, // from ?cursor=...
+    direction = 'forward', // from ?direction=forward|backward
+    searchTerm,
+    ...filters
+  } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
+
+  const result = await new QueryBuilder(prisma.user)
+    .search({ searchText: searchTerm, fields: [...UserConstants.USER_SEARCHABLE_FIELDS] })
+    .filter({ role: filters.role, status: filters.status, gender: filters.gender })
+    // Seek on `id` and order by it so the cursor walk is stable
+    .sortBy({ sortBy: 'id', sortOrder })
+    .cursorPaginate({ cursor, limit, direction, cursorField: 'id' })
+    .select(UserConstants.USER_SAFE_SELECT)
+    .executeWithCursor();
+
+  return result;
+  // → { data, meta: { limit, nextCursor, prevCursor, hasNextPage, hasPrevPage } }
+};
+```
+
+**Client navigation loop:**
+
+```ts
+// Page 1
+let res = await fetch('/api/v1/users/cursor?limit=10');
+let { data, meta } = await res.json();
+
+// Next page
+if (meta.hasNextPage) {
+  res = await fetch(`/api/v1/users/cursor?limit=10&cursor=${meta.nextCursor}&direction=forward`);
+}
+
+// Previous page
+if (meta.hasPrevPage) {
+  res = await fetch(`/api/v1/users/cursor?limit=10&cursor=${meta.prevCursor}&direction=backward`);
+}
+```
+
+---
+
+### Example 8: Raw Cursor via `.custom()` (escape hatch)
+
+For one-off cursor needs you can still drop down to raw Prisma args with `.custom()`:
 
 ```ts
 const users = await new QueryBuilder(prisma.user)
@@ -771,6 +933,9 @@ const users = await new QueryBuilder(prisma.user)
   .select({ id: true, email: true, createdAt: true })
   .execute();
 ```
+
+> [!TIP]
+> Prefer `.cursorPaginate()` + `.executeWithCursor()` over `.custom()` — it computes `next`/`prev` cursors and `hasNextPage`/`hasPrevPage` for you.
 
 ---
 

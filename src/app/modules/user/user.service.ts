@@ -172,6 +172,43 @@ const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
   return result;
 };
 
+// Cursor-based ("seek") pagination — see `.cursorPaginate()`/`.executeWithCursor()`.
+const getAllUsersWithCursor = async (query: TUserQueryOptions = {}) => {
+  const {
+    limit = 10,
+    sortOrder = 'desc',
+    cursor,
+    direction = 'forward',
+    searchTerm,
+    ...filters
+  } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
+
+  const result = await new QueryBuilder(prisma.user)
+    .search({
+      searchText: searchTerm,
+      fields: [...UserConstants.USER_SEARCHABLE_FIELDS],
+    })
+    .filter({
+      role: filters.role,
+      status: filters.status,
+      gender: filters.gender,
+      isVerified: filters.isVerified,
+    })
+    .range({
+      createdAt: { from: filters.createdAtFrom, to: filters.createdAtTo },
+      lastLoginAt: { from: filters.lastLoginAtFrom, to: filters.lastLoginAtTo },
+      dateOfBirth: { from: filters.dateOfBirthFrom, to: filters.dateOfBirthTo },
+      'avatar.size': { from: filters.avatarSizeMin, to: filters.avatarSizeMax },
+    })
+    // Seek on `id` and order by it so the cursor walk is stable.
+    .sortBy({ sortBy: 'id', sortOrder })
+    .cursorPaginate({ cursor, limit, direction, cursorField: 'id' })
+    .select(UserConstants.USER_SAFE_SELECT)
+    .executeWithCursor();
+
+  return result;
+};
+
 const createUserInDB = async (payload: TCreateUserInput) => {
   const { email, username } = payload;
 
@@ -552,6 +589,7 @@ const hardDeleteUserInDB = async (userId: string) => {
 
 export const UserServices = {
   getAllUsersFromDB,
+  getAllUsersWithCursor,
   getAllUsersFromDBManually,
   getUserByIdFromDB,
   updateUserProfileInDB,

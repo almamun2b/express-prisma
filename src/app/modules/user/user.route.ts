@@ -20,6 +20,13 @@ router.get(
   UserControllers.getAllUsers
 );
 
+router.get(
+  '/cursor',
+  checkAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  validateQuery(UserValidation.queryUsersSchema),
+  UserControllers.getAllUsersWithCursor
+);
+
 router.post(
   '/',
   checkAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),

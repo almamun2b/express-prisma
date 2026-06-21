@@ -42,6 +42,8 @@ const USER_FILTERABLE_FIELDS: (keyof TUserQueryOptions)[] = [
   'page',
   'sortBy',
   'sortOrder',
+  'cursor',
+  'direction',
   'searchTerm',
   'role',
   'status',
