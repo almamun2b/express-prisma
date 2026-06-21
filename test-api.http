@@ -1,0 +1,278 @@
+### =========================================================================
+### Express Prisma Advanced Boilerplate — API Documentation & HTTP Requests
+### =========================================================================
+### Designed to run with the `REST Client` extension for VS Code.
+###
+### 🍪 Cookie-Based Authentication (Default)
+### ─────────────────────────────────────────
+### On successful Login, the server automatically sets two HttpOnly, Secure
+### cookies in your browser / REST Client cookie jar:
+###   • accessToken  — short-lived JWT  (default: 15 minutes)
+###   • refreshToken — long-lived JWT   (default: 7 days)
+###
+### These cookies are sent automatically with every subsequent request.
+### You do NOT need to set the Authorization header manually if cookies
+### are being sent by your HTTP client.
+###
+### 🔑 Bearer Token (Optional / Fallback)
+### ─────────────────────────────────────────
+### The `Authorization: Bearer <token>` header is an ALTERNATIVE auth method.
+### Use it when:
+###   • You are testing from a client that does not support cookies
+###     (e.g. curl, mobile apps, or cross-origin REST testing tools)
+###   • You explicitly want to pass the token in the header instead of a cookie
+###
+### Instructions:
+### 1. Execute "Login" and copy the `accessToken` from the response body.
+### 2. Paste it into the `@accessToken` variable below.
+### 3. The Authorization header is already included on protected endpoints
+###    as a fallback — remove it if your client supports cookies natively.
+### =========================================================================
+
+@baseUrl = http://localhost:5000/api/v1
+@accessToken = YOUR_ACCESS_TOKEN_HERE
+@refreshToken = YOUR_REFRESH_TOKEN_HERE
+
+# Test User Credentials
+@email = testuser@example.com
+@password = SecurePass1#
+@firstName = John
+@lastName = Doe
+
+# Verification & Recovery
+@verifyEmailOtp = 123456
+@resetPassToken = resetPassToken
+@newPassword = NewPassword1#
+
+### =========================================================================
+### HEALTH & METRICS
+### =========================================================================
+
+### 1. Root Welcome Endpoint
+GET http://localhost:5000
+Content-Type: application/json
+
+### 2. Health Check Checkup
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+
+### =========================================================================
+### AUTHENTICATION MODULE
+### =========================================================================
+
+### 1. Register User (Creates unverified account and sends OTP)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "{{firstName}}",
+  "lastName": "{{lastName}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Resend Email Verification Code (OTP)
+POST {{baseUrl}}/auth/resend-verification-code
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 3. Verify Email Address (Using the 6-digit OTP sent to email)
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{verifyEmailOtp}}"
+}
+
+### 4. Login User (Returns accessToken in body and cookies)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 5. Refresh Access Token (Uses HttpOnly refreshToken cookie or headers)
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+### 6. Logout User (Invalidates token via Redis blacklist)
+# @name logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 7. Forgot Password (Initiates recovery, sends email with JWT token)
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 8. Resend Forgot Password Email
+POST {{baseUrl}}/auth/resend-forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 9. Reset Password (Completes recovery using reset token)
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "{{resetPassToken}}",
+  "newPassword": "{{newPassword}}"
+}
+
+
+### =========================================================================
+### USER MANAGEMENT MODULE
+### =========================================================================
+
+@userId = 9b7a3fa1-6e1c-457d-872b-0b4efedb33e7
+@oldPassword = SecurePass1#
+@newUserPassword = NewPassword1#
+
+### 1. Get All Users (Admin / Super Admin only)
+GET {{baseUrl}}/users
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 2. Get All Users - Filtered + Paginated (Admin / Super Admin only)
+GET {{baseUrl}}/users?page=1&limit=5&sortBy=createdAt&sortOrder=desc&status=ACTIVE&createdAtFrom=2026-06-01&createdAtTo=2026-12-31
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 3. Create User Manually (Admin / Super Admin only)
+POST {{baseUrl}}/users
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "email": "manuallycreated@example.com",
+  "password": "SecurePass1#",
+  "username": "manualuser",
+  "role": "USER",
+  "status": "ACTIVE",
+  "firstName": "Manual",
+  "lastName": "User",
+  "gender": "MALE",
+  "phone": "+1234567890"
+}
+
+### 4. Get Own Profile (Any authenticated user)
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 5. Update Own Profile - JSON Profile Details
+PATCH {{baseUrl}}/users/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "phone": "+9876543210",
+  "gender": "FEMALE",
+  "bio": "Lead Full Stack Architect",
+  "address": "San Francisco, CA",
+  "dateOfBirth": "1994-04-20",
+  "timezone": "America/Los_Angeles",
+  "locale": "en-US"
+}
+
+### 6. Update Own Profile - Multipart Request (Profile details + optional avatar)
+PATCH {{baseUrl}}/users/me/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ./uploads/avatar.png
+------WebKitFormBoundary
+Content-Disposition: form-data; name="firstName"
+
+Jane
+------WebKitFormBoundary--
+
+### 7. Upload / Replace Own Avatar Only (Multipart)
+PATCH {{baseUrl}}/users/me/avatar
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ./uploads/avatar.png
+------WebKitFormBoundary--
+
+### 8. Delete Own Avatar
+DELETE {{baseUrl}}/users/me/avatar
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 9. Change Own Password
+PATCH {{baseUrl}}/users/me/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "oldPassword": "{{oldPassword}}",
+  "newPassword": "{{newUserPassword}}"
+}
+
+### 10. Deactivate Own Account (Sets status to INACTIVE)
+PATCH {{baseUrl}}/users/me/deactivate
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 11. Reactivate Own Account (Sets status back to ACTIVE)
+PATCH {{baseUrl}}/users/me/reactivate
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 12. Get User by ID (Admin / Super Admin only)
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 13. Update User Status (Admin / Super Admin only)
+PATCH {{baseUrl}}/users/{{userId}}/status
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "SUSPENDED"
+}
+
+### 14. Update User Role (Super Admin only)
+PATCH {{baseUrl}}/users/{{userId}}/role
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "role": "ADMIN"
+}
+
+### 15. Soft Delete User (Admin / Super Admin only)
+DELETE {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### 16. Hard Delete User (Super Admin only)
+DELETE {{baseUrl}}/users/{{userId}}/hard
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
