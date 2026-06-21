@@ -112,7 +112,7 @@ GET {{baseUrl}}/users
 Content-Type: application/json
 
 ### Get All Users - Filtered + Paginated (Admin+)
-GET {{baseUrl}}/users?page=1&limit=5&sortBy=createdAt&sortOrder=desc&role=USER&status=ACTIVE&searchTerm=john
+GET {{baseUrl}}/users?page=1&limit=5&sortBy=createdAt&sortOrder=desc&status=ACTIVE&createdAtFrom=2026-06-21&createdAtTo=2026-12-31
 Content-Type: application/json
 
 ### Create User Manually (Admin+)
@@ -120,9 +120,9 @@ POST {{baseUrl}}/users
 Content-Type: application/json
 
 {
-  "email": "userd3@example.com",
+  "email": "user10@example.com",
   "password": "SecurePass1#",
-  "username": "userd3",
+  "username": "user10",
   "role": "USER",
   "status": "ACTIVE",
   "firstName": "Manual",

@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
+import type { TUserQueryOptions } from './user.types';
 
 const USER_SAFE_SELECT = {
   id: true,
@@ -36,9 +37,16 @@ const USER_SAFE_SELECT = {
 
 const USER_SEARCHABLE_FIELDS = ['email', 'username', 'firstName', 'lastName', 'phone'] as const;
 
-const USER_FILTERABLE_FIELDS = ['searchTerm', 'role', 'status', 'isVerified', 'gender'] as const;
-
-const USER_RANGE_FILTERABLE_FIELDS = [
+const USER_FILTERABLE_FIELDS: (keyof TUserQueryOptions)[] = [
+  'limit',
+  'page',
+  'sortBy',
+  'sortOrder',
+  'searchTerm',
+  'role',
+  'status',
+  'isVerified',
+  'gender',
   'createdAtFrom',
   'createdAtTo',
   'lastLoginAtFrom',
@@ -48,8 +56,6 @@ const USER_RANGE_FILTERABLE_FIELDS = [
   'avatarSizeMin',
   'avatarSizeMax',
 ] as const;
-
-const OPTIONS = ['limit', 'page', 'sortBy', 'sortOrder'] as const;
 
 const UserMessages = {
   FETCH_SUCCESS: 'Users fetched successfully',
@@ -81,8 +87,6 @@ const UserConstants = {
   USER_SAFE_SELECT,
   USER_SEARCHABLE_FIELDS,
   USER_FILTERABLE_FIELDS,
-  USER_RANGE_FILTERABLE_FIELDS,
-  OPTIONS,
 };
 
 export { UserConstants, UserMessages };
