@@ -207,7 +207,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 # Redis (Token blacklisting & Caching)
 # ============================================
 REDIS_URL=redis://localhost:6379
-REDIS_PASSWORD=radis_password
+REDIS_PASSWORD=redis_password
 
 # ============================================
 # Email (SMTP)
