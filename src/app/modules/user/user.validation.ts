@@ -98,7 +98,6 @@ const queryUsersSchema = z.object({
     .optional(),
   gender: z.enum(Gender).optional(),
 
-  // Dates (accept both formats, transform to Date)
   createdAt: dateOrDateTime.optional(),
   updatedAt: dateOrDateTime.optional(),
   lastLoginAt: dateOrDateTime.optional(),

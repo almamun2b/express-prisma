@@ -48,6 +48,32 @@ const register = async (input: TRegisterInput) => {
 
   const hashedPassword = await hashPassword(password);
 
+  /*
+   * Alternative approach to implement this logic:
+   *
+   * await prisma.$transaction(async (tx) => {
+   *   const user = await tx.user.create({
+   *     data: {
+   *       firstName,
+   *       lastName,
+   *       email,
+   *       password: hashedPassword,
+   *       status: UserStatus.PENDING,
+   *       isVerified: false,
+   *     },
+   *   });
+   *
+   *   await tx.authProvider.create({
+   *     data: {
+   *       provider: AuthProviderName.CREDENTIAL,
+   *       providerId: user.email,
+   *       userId: user.id,
+   *     },
+   *   });
+   * });
+   *
+   */
+
   const newUser = await prisma.user.create({
     data: {
       firstName,
@@ -68,27 +94,6 @@ const register = async (input: TRegisterInput) => {
       email: true,
     },
   });
-
-  // await prisma.$transaction(async (tx) => {
-  //   const user = await tx.user.create({
-  //     data: {
-  //       firstName,
-  //       lastName,
-  //       email,
-  //       password: hashedPassword,
-  //       status: UserStatus.PENDING,
-  //       isVerified: false,
-  //     },
-  //   });
-
-  //   await tx.authProvider.create({
-  //     data: {
-  //       provider: AuthProviderName.CREDENTIAL,
-  //       providerId: user.email,
-  //       userId: user.id,
-  //     },
-  //   });
-  // });
 
   await AuthUtils.sendOtpToEmail(newUser.email);
 

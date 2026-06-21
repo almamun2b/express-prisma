@@ -1,10 +1,10 @@
 export interface IMeta {
   limit: number;
-  // Offset pagination
+
   page?: number;
   total?: number;
   totalPage?: number;
-  // Cursor pagination
+
   nextCursor?: string | null;
   prevCursor?: string | null;
   hasNextPage?: boolean;

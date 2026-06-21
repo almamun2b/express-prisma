@@ -283,7 +283,6 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
     }
     if (this.cursorActive) {
       const limit = this.cursorLimit ?? 10;
-      // Over-fetch one row to detect whether a further page exists.
       args.take = (this.cursorDirection === 'backward' ? -1 : 1) * (limit + 1);
       if (this.cursor !== undefined) {
         args.cursor = { [this.cursorField]: this.cursor };
@@ -354,7 +353,6 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
 
     const hasExtra = rows.length > limit;
     const pageRows = hasExtra ? rows.slice(0, limit) : rows;
-    // A negative `take` (backward) returns rows in reverse; restore sort order.
     const ordered = direction === 'backward' ? [...pageRows].reverse() : pageRows;
 
     const firstRow = ordered[0];

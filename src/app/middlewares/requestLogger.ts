@@ -35,17 +35,24 @@ export { requestLogger };
 /* -------------------------------------------------------------------------- */
 /* Morgan backup — uncomment below and comment out requestLogger above        */
 /* -------------------------------------------------------------------------- */
-// import morgan from "morgan";
-//
-// const stream = {
-//   write: (message: string) => {
-//     logger.http(message.trim());
-//   },
-// };
-//
-// const requestLogger = morgan(
-//   env.nodeEnv === "development" ? "dev" : "combined",
-//   { stream },
-// );
-//
-// export { requestLogger };
+/*
+ * Install morgan first:
+ *
+ * npm install morgan
+ *
+ * import morgan from "morgan";
+ *
+ * const stream = {
+ *   write: (message: string) => {
+ *     logger.http(message.trim());
+ *   },
+ * };
+ *
+ * const requestLogger = morgan(
+ *   env.nodeEnv === "development" ? "dev" : "combined",
+ *   { stream },
+ * );
+ *
+ * export { requestLogger };
+ *
+ */
