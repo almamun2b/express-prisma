@@ -207,7 +207,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 # Redis (Token blacklisting & Caching)
 # ============================================
 REDIS_URL=redis://localhost:6379
-REDIS_PASSWORD=
+REDIS_PASSWORD=redis_password
 
 # ============================================
 # Email (SMTP)
@@ -230,16 +230,6 @@ CLOUDINARY_API_SECRET=your_api_secret
 # ============================================
 CORS_ORIGIN=http://localhost:3000,http://localhost:3001
 
-# ============================================
-# Rate Limiting
-# ============================================
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# ============================================
-# Logging
-# ============================================
-LOG_LEVEL=info
 ```
 
 > [!CAUTION]
