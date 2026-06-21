@@ -31,6 +31,11 @@ type OrderByOf<TDelegate extends PrismaModelDelegate> = NonNullable<
   FindManyArgsOf<TDelegate>['orderBy']
 >;
 
+/** The `cursor` argument type for the given delegate, e.g. `{ id: number }`. */
+type CursorOf<TDelegate extends PrismaModelDelegate> = NonNullable<
+  FindManyArgsOf<TDelegate>['cursor']
+>;
+
 /** Scalar/relation keys that can be referenced from a model's `where` input. */
 type WhereKeyOf<TDelegate extends PrismaModelDelegate> = keyof WhereOf<TDelegate> & string;
 
@@ -67,6 +72,14 @@ export interface PaginationMeta {
   totalPage: number;
 }
 
+/** Pagination metadata for cursor-based pagination, Relay-style. */
+export interface CursorPageMeta<TCursor = unknown> {
+  startCursor: TCursor | null;
+  endCursor: TCursor | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 /**
  * Generic, reusable and fully type-safe query builder for any Prisma model
  * delegate. All option types (`where`, `select`, `include`, `orderBy`, ...) are
@@ -79,7 +92,7 @@ export interface PaginationMeta {
  * @typeParam TDelegate - The Prisma model delegate, e.g. `typeof prisma.user`.
  * @typeParam TArgs - Accumulated `findMany` args. Defaults to no projection.
  *
- * @example
+ * @example Offset pagination
  * const result = await new QueryBuilder(prisma.user)
  *   .search({ searchText, fields: ['email', 'username'] })
  *   .filter({ role, status })
@@ -87,7 +100,14 @@ export interface PaginationMeta {
  *   .sortBy({ sortBy: 'createdAt', sortOrder: 'desc' })
  *   .paginate({ page: 1, limit: 10 })
  *   .select({ id: true, email: true })
- *   .execute();
+ *   .executeWithMeta();
+ *
+ * @example Cursor pagination
+ * const result = await new QueryBuilder(prisma.user)
+ *   .filter({ role })
+ *   .sortBy({ sortBy: 'id', sortOrder: 'asc' }) // must be deterministic / unique
+ *   .cursorPaginate({ cursor: cursorId ? { id: cursorId } : undefined, take: 10 })
+ *   .executeWithCursor('id');
  */
 export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object> {
   private readonly delegate: TDelegate;
@@ -98,6 +118,9 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
   private includeArg: object | undefined;
   private page: number | undefined;
   private limit: number | undefined;
+  private cursorArg: object | undefined;
+  private cursorTake: number | undefined;
+  private hasCursorInput = false;
 
   /**
    * @param delegate - The Prisma delegate to query (e.g. `prisma.user`).
@@ -185,6 +208,28 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
   }
 
   /**
+   * Configures keyset (cursor) pagination. Fetches `take + 1` rows under the
+   * hood to derive `hasNextPage` without a second query, then call
+   * {@link executeWithCursor} instead of `execute()`.
+   *
+   * `orderBy` (via {@link sortBy}) must be deterministic — include the cursor
+   * field itself (or a unique field) as a tiebreaker, otherwise pages can skip
+   * or repeat rows.
+   *
+   * Takes precedence over `.paginate()` if both are set.
+   *
+   * @param params.cursor - The unique `where` of the last row from the
+   *   previous page, e.g. `{ id: 41 }`. Omit for the first page.
+   * @param params.take - Page size. Defaults to 10.
+   */
+  cursorPaginate(params: { cursor?: CursorOf<TDelegate>; take?: number }): this {
+    this.cursorTake = params.take ?? 10;
+    this.cursorArg = params.cursor;
+    this.hasCursorInput = params.cursor !== undefined;
+    return this;
+  }
+
+  /**
    * Projects fields with Prisma `select`. The result type of `execute` is
    * narrowed to exactly the selected shape.
    */
@@ -237,7 +282,15 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
     if (this.includeArg) {
       args.include = this.includeArg;
     }
-    if (this.limit !== undefined) {
+
+    if (this.cursorTake !== undefined) {
+      // Fetch one extra row to determine hasNextPage without a second query.
+      args.take = this.cursorTake + 1;
+      if (this.cursorArg) {
+        args.cursor = this.cursorArg;
+        args.skip = 1; // skip the cursor row itself
+      }
+    } else if (this.limit !== undefined) {
       const page = this.page ?? 1;
       args.take = this.limit;
       args.skip = (page - 1) * this.limit;
@@ -264,7 +317,7 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
     return count(where ? { where } : {});
   }
 
-  /** Executes the query and returns the rows plus pagination metadata. */
+  /** Executes the query and returns the rows plus offset pagination metadata. */
   async executeWithMeta(): Promise<{
     meta: PaginationMeta;
     data: Prisma.Result<TDelegate, TArgs, 'findMany'>;
@@ -277,6 +330,46 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
     return {
       meta: { page, limit, total, totalPage: Math.ceil(total / limit) },
       data,
+    };
+  }
+
+  /**
+   * Executes the query configured via {@link cursorPaginate} and returns the
+   * rows plus Relay-style cursor `meta`. No `COUNT` query is issued —
+   * cursor pagination intentionally avoids the cost of a total count.
+   *
+   * @param field - The row property to use as the cursor value (e.g. `'id'`).
+   *   Must match the field used in `.cursorPaginate({ cursor: { [field]: ... } })`
+   *   and must be present in the result rows (don't `.select()` it out).
+   */
+  async executeWithCursor<TField extends string = 'id'>(
+    field: TField = 'id' as TField
+  ): Promise<{
+    data: Prisma.Result<TDelegate, TArgs, 'findMany'>;
+    meta: CursorPageMeta;
+  }> {
+    if (this.cursorTake === undefined) {
+      throw new Error('cursorPaginate() must be called before executeWithCursor()');
+    }
+
+    const rows = (await this.execute()) as unknown as Record<string, unknown>[];
+
+    const hasNextPage = rows.length > this.cursorTake;
+    if (hasNextPage) {
+      rows.pop(); // drop the extra lookahead row
+    }
+
+    const startCursor = rows.length > 0 ? (rows[0]![field] ?? null) : null;
+    const endCursor = rows.length > 0 ? (rows[rows.length - 1]![field] ?? null) : null;
+
+    return {
+      data: rows as unknown as Prisma.Result<TDelegate, TArgs, 'findMany'>,
+      meta: {
+        startCursor,
+        endCursor,
+        hasNextPage,
+        hasPreviousPage: this.hasCursorInput,
+      },
     };
   }
 
