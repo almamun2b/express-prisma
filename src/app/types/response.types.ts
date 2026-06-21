@@ -1,8 +1,14 @@
 export interface IMeta {
-  page: number;
   limit: number;
-  total: number;
+
+  page?: number;
+  total?: number;
   totalPage?: number;
+
+  nextCursor?: string | null;
+  prevCursor?: string | null;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
 }
 
 export interface IResponse<T> {

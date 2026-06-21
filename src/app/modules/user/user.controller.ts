@@ -29,6 +29,20 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
+const getAllUsersWithCursor = catchAsync(async (req, res) => {
+  const query = (req?.validatedQuery as TUserQueryOptions | undefined) ?? {};
+  const result = await UserServices.getAllUsersWithCursor(query);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: UserMessages.FETCH_SUCCESS,
+    path: req.originalUrl,
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 const createUser = catchAsync(async (req, res) => {
   const result = await UserServices.createUserInDB(req.body as TCreateUserInput);
 
@@ -247,6 +261,7 @@ const hardDeleteUser = catchAsync(async (req, res) => {
 
 export const UserControllers = {
   getAllUsers,
+  getAllUsersWithCursor,
   getUserById,
   getMyProfile,
   updateMyProfile,

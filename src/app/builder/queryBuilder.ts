@@ -67,6 +67,19 @@ export interface PaginationMeta {
   totalPage: number;
 }
 
+/** Direction to walk through a cursor-paginated result set. */
+type CursorDirection = 'forward' | 'backward';
+
+export interface CursorMeta {
+  limit: number;
+  /** Cursor to pass as `cursor` to fetch the next page (`null` if none). */
+  nextCursor: string | null;
+  /** Cursor to pass as `cursor` (with `direction: 'backward'`) for the previous page. */
+  prevCursor: string | null;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 /**
  * Generic, reusable and fully type-safe query builder for any Prisma model
  * delegate. All option types (`where`, `select`, `include`, `orderBy`, ...) are
@@ -98,6 +111,11 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
   private includeArg: object | undefined;
   private page: number | undefined;
   private limit: number | undefined;
+  private cursorActive = false;
+  private cursor: string | undefined;
+  private cursorLimit: number | undefined;
+  private cursorField = 'id';
+  private cursorDirection: CursorDirection = 'forward';
 
   /**
    * @param delegate - The Prisma delegate to query (e.g. `prisma.user`).
@@ -185,6 +203,32 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
   }
 
   /**
+   * Configures cursor-based ("seek") pagination. Use {@link executeWithCursor}
+   * to run the query and obtain `next`/`prev` cursors.
+   *
+   * - `cursor` is the value of `cursorField` from the edge row of the previous
+   *   page (omit it for the first page).
+   * - `direction` walks `'forward'` (next) or `'backward'` (previous).
+   * - `cursorField` is the unique, sequential column to seek on (default `id`).
+   *   Pair it with a matching {@link sortBy} for stable ordering.
+   *
+   * Takes precedence over {@link paginate} when both are set.
+   */
+  cursorPaginate(params: {
+    cursor?: string | undefined;
+    limit?: number;
+    direction?: CursorDirection;
+    cursorField?: OrderKeyOf<TDelegate> | (string & {});
+  }): this {
+    this.cursorActive = true;
+    this.cursor = params.cursor;
+    this.cursorLimit = params.limit ?? 10;
+    this.cursorDirection = params.direction ?? 'forward';
+    this.cursorField = params.cursorField ?? 'id';
+    return this;
+  }
+
+  /**
    * Projects fields with Prisma `select`. The result type of `execute` is
    * narrowed to exactly the selected shape.
    */
@@ -237,7 +281,14 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
     if (this.includeArg) {
       args.include = this.includeArg;
     }
-    if (this.limit !== undefined) {
+    if (this.cursorActive) {
+      const limit = this.cursorLimit ?? 10;
+      args.take = (this.cursorDirection === 'backward' ? -1 : 1) * (limit + 1);
+      if (this.cursor !== undefined) {
+        args.cursor = { [this.cursorField]: this.cursor };
+        args.skip = 1;
+      }
+    } else if (this.limit !== undefined) {
       const page = this.page ?? 1;
       args.take = this.limit;
       args.skip = (page - 1) * this.limit;
@@ -277,6 +328,52 @@ export class QueryBuilder<TDelegate extends PrismaModelDelegate, TArgs = object>
     return {
       meta: { page, limit, total, totalPage: Math.ceil(total / limit) },
       data,
+    };
+  }
+
+  /**
+   * Executes a cursor-paginated query (see {@link cursorPaginate}) and returns
+   * the page rows plus `next`/`prev` cursors. Rows are always returned in the
+   * configured sort order, regardless of pagination `direction`.
+   */
+  async executeWithCursor(): Promise<{
+    meta: CursorMeta;
+    data: Prisma.Result<TDelegate, TArgs, 'findMany'>;
+  }> {
+    if (!this.cursorActive) {
+      this.cursorPaginate({});
+    }
+    const limit = this.cursorLimit ?? 10;
+    const direction = this.cursorDirection;
+
+    const findMany = this.delegate.findMany.bind(this.delegate) as unknown as (
+      args: object
+    ) => Promise<Record<string, unknown>[]>;
+    const rows = await findMany(this.buildArgs());
+
+    const hasExtra = rows.length > limit;
+    const pageRows = hasExtra ? rows.slice(0, limit) : rows;
+    const ordered = direction === 'backward' ? [...pageRows].reverse() : pageRows;
+
+    const firstRow = ordered[0];
+    const lastRow = ordered[ordered.length - 1];
+    const hadCursor = this.cursor !== undefined;
+
+    const hasRows = rows.length > 0;
+    const hasNextPage = direction === 'forward' ? hasExtra : hadCursor && hasRows;
+    const hasPrevPage = direction === 'backward' ? hasExtra : hadCursor && hasRows;
+
+    const meta: CursorMeta = {
+      limit,
+      nextCursor: hasNextPage && lastRow ? String(lastRow[this.cursorField]) : null,
+      prevCursor: hasPrevPage && firstRow ? String(firstRow[this.cursorField]) : null,
+      hasNextPage,
+      hasPrevPage,
+    };
+
+    return {
+      meta,
+      data: ordered as unknown as Prisma.Result<TDelegate, TArgs, 'findMany'>,
     };
   }
 

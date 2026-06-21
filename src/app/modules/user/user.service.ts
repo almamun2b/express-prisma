@@ -31,7 +31,6 @@ const getAllUsersFromDBManually = async (query: TUserQueryOptions = {}) => {
 
   const andConditions: Prisma.UserWhereInput[] = [];
 
-  // 1. Search term match (OR logic across multiple fields)
   if (searchTerm) {
     andConditions.push({
       OR: UserConstants.USER_SEARCHABLE_FIELDS.map((field) => ({
@@ -43,7 +42,6 @@ const getAllUsersFromDBManually = async (query: TUserQueryOptions = {}) => {
     });
   }
 
-  // 2. Direct filter matches
   if (filters.role) {
     andConditions.push({ role: filters.role });
   }
@@ -62,7 +60,6 @@ const getAllUsersFromDBManually = async (query: TUserQueryOptions = {}) => {
     andConditions.push({ gender: filters.gender });
   }
 
-  // 3. Range filters
   if (filters.createdAtFrom || filters.createdAtTo) {
     andConditions.push({
       createdAt: {
@@ -104,7 +101,7 @@ const getAllUsersFromDBManually = async (query: TUserQueryOptions = {}) => {
       },
     });
   }
-  // Options
+
   const where: Prisma.UserWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
   const skip = (Number(page) - 1) * Number(limit);
@@ -168,6 +165,42 @@ const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
     .paginate({ page, limit })
     .select(UserConstants.USER_SAFE_SELECT)
     .executeWithMeta();
+
+  return result;
+};
+
+// Cursor-based
+const getAllUsersWithCursor = async (query: TUserQueryOptions = {}) => {
+  const {
+    limit = 10,
+    sortOrder = 'desc',
+    cursor,
+    direction = 'forward',
+    searchTerm,
+    ...filters
+  } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
+
+  const result = await new QueryBuilder(prisma.user)
+    .search({
+      searchText: searchTerm,
+      fields: [...UserConstants.USER_SEARCHABLE_FIELDS],
+    })
+    .filter({
+      role: filters.role,
+      status: filters.status,
+      gender: filters.gender,
+      isVerified: filters.isVerified,
+    })
+    .range({
+      createdAt: { from: filters.createdAtFrom, to: filters.createdAtTo },
+      lastLoginAt: { from: filters.lastLoginAtFrom, to: filters.lastLoginAtTo },
+      dateOfBirth: { from: filters.dateOfBirthFrom, to: filters.dateOfBirthTo },
+      'avatar.size': { from: filters.avatarSizeMin, to: filters.avatarSizeMax },
+    })
+    .sortBy({ sortBy: 'id', sortOrder })
+    .cursorPaginate({ cursor, limit, direction, cursorField: 'id' })
+    .select(UserConstants.USER_SAFE_SELECT)
+    .executeWithCursor();
 
   return result;
 };
@@ -552,6 +585,7 @@ const hardDeleteUserInDB = async (userId: string) => {
 
 export const UserServices = {
   getAllUsersFromDB,
+  getAllUsersWithCursor,
   getAllUsersFromDBManually,
   getUserByIdFromDB,
   updateUserProfileInDB,

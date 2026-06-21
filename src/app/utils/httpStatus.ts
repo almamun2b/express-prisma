@@ -1,3 +1,6 @@
+/**
+ * Numeric HTTP status codes as defined by RFC 7231, RFC 6585, RFC 4918, and related specs.
+ */
 export enum StatusCodes {
   CONTINUE = 100,
   SWITCHING_PROTOCOLS = 101,
@@ -67,6 +70,9 @@ export enum StatusCodes {
   NETWORK_AUTHENTICATION_REQUIRED = 511,
 }
 
+/**
+ * Human-readable reason phrases corresponding to each {@link StatusCodes} value.
+ */
 export enum ReasonPhrases {
   CONTINUE = 'Continue',
   SWITCHING_PROTOCOLS = 'Switching Protocols',
@@ -136,6 +142,9 @@ export enum ReasonPhrases {
   NETWORK_AUTHENTICATION_REQUIRED = 'Network Authentication Required',
 }
 
+/**
+ * String-literal names of each status code, used as keys into {@link StatusCodes}.
+ */
 export enum StatusNames {
   CONTINUE = 'CONTINUE',
   SWITCHING_PROTOCOLS = 'SWITCHING_PROTOCOLS',
@@ -205,26 +214,26 @@ export enum StatusNames {
   NETWORK_AUTHENTICATION_REQUIRED = 'NETWORK_AUTHENTICATION_REQUIRED',
 }
 
+/** Union of all valid {@link StatusNames} keys. */
 export type StatusName = keyof typeof StatusNames;
 
+/**
+ * Resolve the reason phrase for a numeric status code.
+ *
+ * @param code - A {@link StatusCodes} value (e.g. 404).
+ * @returns The corresponding {@link ReasonPhrases} string (e.g. "Not Found").
+ */
 export const getReasonPhrase = (code: StatusCodes): ReasonPhrases => {
   const name = StatusCodes[code] as keyof typeof StatusCodes;
   return ReasonPhrases[name];
 };
 
+/**
+ * Resolve the numeric status code for a status name.
+ *
+ * @param codeName - A key of {@link StatusCodes} (e.g. "BAD_REQUEST").
+ * @returns The corresponding {@link StatusCodes} numeric value (e.g. 400).
+ */
 export const getStatusCode = (codeName: keyof typeof StatusCodes): StatusCodes => {
   return StatusCodes[codeName];
 };
-
-// Example usage:
-// console.log(StatusCodes.BAD_REQUEST);
-
-// console.log(ReasonPhrases.BAD_REQUEST);
-
-// console.log(StatusNames.BAD_REQUEST);
-
-// console.log(getReasonPhrase(401));
-
-// console.log(getStatusCode(StatusNames.BAD_REQUEST));
-
-// console.log(getStatusCode("BAD_REQUEST"));

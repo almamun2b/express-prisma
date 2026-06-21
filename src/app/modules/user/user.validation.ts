@@ -58,11 +58,30 @@ const changePasswordSchema = z.object({
   newPassword: AuthValidation.passwordField,
 });
 
+const dateOrDateTime = z.preprocess((val) => {
+  if (!val) return undefined;
+
+  if (typeof val === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      return new Date(val + 'T00:00:00Z');
+    }
+    return new Date(val);
+  }
+
+  if (val instanceof Date) {
+    return val;
+  }
+
+  return undefined;
+}, z.date());
+
 const queryUsersSchema = z.object({
   page: z.preprocess((val) => (val ? Number(val) : undefined), z.number().int().min(1)).optional(),
   limit: z.preprocess((val) => (val ? Number(val) : undefined), z.number().int().min(1)).optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
+  cursor: z.string().optional(),
+  direction: z.enum(['forward', 'backward']).optional(),
   searchTerm: z.string().optional(),
   role: z.enum(UserRole).optional(),
   status: z.enum(UserStatus).optional(),
@@ -78,16 +97,19 @@ const queryUsersSchema = z.object({
     )
     .optional(),
   gender: z.enum(Gender).optional(),
-  createdAt: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  updatedAt: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  lastLoginAt: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  dateOfBirth: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  createdAtFrom: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  createdAtTo: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  lastLoginAtFrom: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  lastLoginAtTo: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  dateOfBirthFrom: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
-  dateOfBirthTo: z.iso.datetime({ precision: 0, offset: true }).or(z.iso.date()).optional(),
+
+  createdAt: dateOrDateTime.optional(),
+  updatedAt: dateOrDateTime.optional(),
+  lastLoginAt: dateOrDateTime.optional(),
+  dateOfBirth: dateOrDateTime.optional(),
+
+  createdAtFrom: dateOrDateTime.optional(),
+  createdAtTo: dateOrDateTime.optional(),
+  lastLoginAtFrom: dateOrDateTime.optional(),
+  lastLoginAtTo: dateOrDateTime.optional(),
+  dateOfBirthFrom: dateOrDateTime.optional(),
+  dateOfBirthTo: dateOrDateTime.optional(),
+
   avatarSizeMin: z
     .preprocess((val) => (val ? Number(val) : undefined), z.number().nonnegative())
     .optional(),
@@ -111,4 +133,5 @@ export const UserValidation = {
   changePasswordSchema,
   queryUsersSchema,
   paramsIdSchema,
+  dateOrDateTime,
 };
