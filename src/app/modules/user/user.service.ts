@@ -1,3 +1,4 @@
+import { QueryBuilder } from '@/app/builder/queryBuilder';
 import { prisma } from '@/app/config/prisma';
 import { AppError } from '@/app/utils/appError';
 import { Codes } from '@/app/utils/codes';
@@ -133,6 +134,42 @@ const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
     },
     data,
   };
+};
+
+// With QueryBuilder
+const getAllUsersWithQueryBuilder = async (query: TUserQueryOptions = {}) => {
+  const { searchTerm, ...filters } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
+  const rangeFilters = pick(query, [...UserConstants.USER_RANGE_FILTERABLE_FIELDS]);
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+  } = pick(query, [...UserConstants.OPTIONS]);
+
+  const result = await new QueryBuilder(prisma.user)
+    .search({
+      searchText: searchTerm,
+      fields: [...UserConstants.USER_SEARCHABLE_FIELDS],
+    })
+    .filter({
+      role: filters.role,
+      status: filters.status,
+      gender: filters.gender,
+      isVerified: filters.isVerified,
+    })
+    .range({
+      createdAt: { from: rangeFilters.createdAtFrom, to: rangeFilters.createdAtTo },
+      lastLoginAt: { from: rangeFilters.lastLoginAtFrom, to: rangeFilters.lastLoginAtTo },
+      dateOfBirth: { from: rangeFilters.dateOfBirthFrom, to: rangeFilters.dateOfBirthTo },
+      'avatar.size': { from: rangeFilters.avatarSizeMin, to: rangeFilters.avatarSizeMax },
+    })
+    .sortBy({ sortBy, sortOrder })
+    .paginate({ page, limit })
+    .select(UserConstants.USER_SAFE_SELECT)
+    .executeWithMeta();
+
+  return result;
 };
 
 const createUserInDB = async (payload: TCreateUserInput) => {
@@ -515,6 +552,7 @@ const hardDeleteUserInDB = async (userId: string) => {
 
 export const UserServices = {
   getAllUsersFromDB,
+  getAllUsersWithQueryBuilder,
   getUserByIdFromDB,
   updateUserProfileInDB,
   updateUserStatusOrRoleInDB,
