@@ -1,55 +1,62 @@
-# Authentication Module API Documentation
+# 🔐 Authentication Module
 
-This module handles all user identity workflows: registration with email OTP verification, login, token refresh, logout with Redis-based blacklisting, and a complete password reset flow.
-
----
-
-## Overview
-
-| Feature                  | Path                                  | Auth Required |
-| ------------------------ | ------------------------------------- | ------------- |
-| Register                 | `POST /auth/register`                 | No            |
-| Resend Verification Code | `POST /auth/resend-verification-code` | No            |
-| Verify Email             | `POST /auth/verify-email`             | No            |
-| Login                    | `POST /auth/login`                    | No            |
-| Refresh Token            | `POST /auth/refresh-token`            | No (cookie)   |
-| Logout                   | `POST /auth/logout`                   | Yes           |
-| Forgot Password          | `POST /auth/forgot-password`          | No            |
-| Resend Forgot Password   | `POST /auth/resend-forgot-password`   | No            |
-| Reset Password           | `POST /auth/reset-password`           | No (token)    |
+The **Authentication Module** handles user identity, secure access control, registration with email OTP verification, dual-token JWT rotation, Redis-backed logout invalidation, and secure self-service password recovery workflows.
 
 ---
 
-## Token Strategy
+## 🏗️ Architecture & Security Concepts
 
-- **Access Token**: Short-lived JWT sent as `Authorization: Bearer <token>` header and/or `accessToken` cookie.
-- **Refresh Token**: Longer-lived JWT stored in an `HttpOnly` cookie (`refreshToken`).
-- **Blacklisting**: On logout or token refresh, the previous tokens are hashed (SHA-256) and stored in Redis with a TTL matching their remaining expiry. The `checkAuth` middleware rejects blacklisted tokens.
-- **JTI**: Every token is assigned a unique `jti` (JWT ID) claim at issuance to enable per-token blacklisting.
+### 1. Dual-Token Strategy
+
+To balance user experience and security, this system utilizes two JSON Web Tokens (JWTs):
+
+- **Access Token**: Short-lived (default: `15m`), transmitted in the `Authorization: Bearer <token>` header or via a secure, client-side readable `accessToken` cookie.
+- **Refresh Token**: Long-lived (default: `7d`), stored in a secure, `HttpOnly`, `SameSite=Lax` cookie (`refreshToken`) that is inaccessible to client-side scripts, protecting it against Cross-Site Scripting (XSS) attacks.
+
+### 2. Redis-Backed Token Blacklisting (JTI)
+
+Upon user logout or token rotation (refresh):
+
+- The token's unique ID (`jti` claim) is extracted.
+- The token is hashed using SHA-256 and cached in Redis.
+- The Redis key is configured with a Time-To-Live (TTL) matching the exact remaining lifespan of the token.
+- The `checkAuth` middleware queries Redis on every request; any blacklisted token is immediately rejected.
+
+### 3. Cooldown & Anti-Spam Protection
+
+To prevent Denial of Service (DoS) and SMTP resource abuse:
+
+- **Email Verification Cooldown**: Resending verification codes is locked by a 60-second cooldown key stored in Redis.
+- **Password Reset Cooldown**: Initiating a password reset generates a temporary cooldown key to prevent email flooding.
 
 ---
 
-## Endpoints
+## 📡 API Reference
 
-### 1. Register
+### 1. Register User
 
-Creates a new unverified user and sends a 6-digit OTP to the provided email.
+Creates a pending user account and sends a 6-digit OTP code to the email address.
 
-- **Method**: `POST`
-- **Path**: `/auth/register`
-- **Content-Type**: `application/json`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/register`
+- **Authentication**: None
+- **Validation (Zod)**:
+  - `firstName`: string (1-50 chars)
+  - `lastName`: string (1-50 chars)
+  - `email`: valid email format
+  - `password`: minimum 8 characters, must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+
+**Request Body**:
 
 ```json
 {
   "firstName": "John",
   "lastName": "Doe",
-  "email": "john@example.com",
-  "password": "SecurePass1#"
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!"
 }
 ```
 
-- **Response (200 OK)**:
+**Response (200 OK)**:
 
 ```json
 {
@@ -59,23 +66,27 @@ Creates a new unverified user and sends a 6-digit OTP to the provided email.
 }
 ```
 
-> **Note**: If the email is already registered but unverified, a new OTP is sent. If already verified, a `409 Conflict` is returned.
+> [!NOTE]
+> If a user registration request is received for an email that is already registered but remains unverified, the system will regenerate and resend a new OTP instead of throwing a conflict error.
 
 ---
 
 ### 2. Resend Verification Code
 
-Resends the 6-digit OTP if the user has not yet verified their email.
+Triggers a new OTP verification email, subject to rate limiting and cooldown constraints.
 
-- **Method**: `POST`
-- **Path**: `/auth/resend-verification-code`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/resend-verification-code`
+- **Authentication**: None
+
+**Request Body**:
 
 ```json
-{ "email": "john@example.com" }
+{
+  "email": "john.doe@example.com"
+}
 ```
 
-- **Response (200 OK)**:
+**Response (200 OK)**:
 
 ```json
 {
@@ -85,26 +96,25 @@ Resends the 6-digit OTP if the user has not yet verified their email.
 }
 ```
 
-> **Cooldown**: A per-email cooldown (Redis TTL) prevents OTP spam. On cooldown, returns `429 Too Many Requests` with seconds remaining.
-
 ---
 
 ### 3. Verify Email
 
-Validates the OTP and activates the user account.
+Validates the OTP code received by the user and activates the account.
 
-- **Method**: `POST`
-- **Path**: `/auth/verify-email`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/verify-email`
+- **Authentication**: None
+
+**Request Body**:
 
 ```json
 {
-  "email": "john@example.com",
-  "code": "942176"
+  "email": "john.doe@example.com",
+  "code": "123456"
 }
 ```
 
-- **Response (200 OK)**:
+**Response (200 OK)**:
 
 ```json
 {
@@ -114,26 +124,25 @@ Validates the OTP and activates the user account.
 }
 ```
 
-- On success, user `status` is set to `ACTIVE`, `isVerified` is set to `true`, and the OTP + cooldown keys are purged from Redis.
-
 ---
 
-### 4. Login
+### 4. Login User
 
-Authenticates user credentials and issues access + refresh tokens.
+Authenticates the user and sets HTTP-Only tokens.
 
-- **Method**: `POST`
-- **Path**: `/auth/login`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/login`
+- **Authentication**: None
+
+**Request Body**:
 
 ```json
 {
-  "email": "john@example.com",
-  "password": "SecurePass1#"
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!"
 }
 ```
 
-- **Response (200 OK)**:
+**Response (200 OK)**:
 
 ```json
 {
@@ -142,33 +151,31 @@ Authenticates user credentials and issues access + refresh tokens.
   "message": "Login successful.",
   "data": {
     "user": {
-      "id": "e229e470-...",
-      "email": "john@example.com",
+      "id": "a9b8c7d6-e5f4-3210-abcd-ef0123456789",
+      "email": "john.doe@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
       "role": "USER",
       "status": "ACTIVE"
     },
-    "tokens": {
-      "accessToken": "<jwt>",
-      "refreshToken": "<jwt>"
-    }
+    "accessToken": "eyJhbGciOiJIUzI1NiIsIn..."
   }
 }
 ```
 
-- Tokens are also set as `HttpOnly` cookies (`accessToken`, `refreshToken`).
-- Updates `lastLoginAt` on the user record.
-- Returns `401 Unauthorized` for invalid credentials, `403 Forbidden` for inactive/banned/deleted accounts.
+> [!IMPORTANT]
+> The login response sets an `HttpOnly`, `Secure` (in production), and `SameSite=Lax` cookie named `refreshToken`. It also records the timestamp under `lastLoginAt`.
 
 ---
 
-### 5. Refresh Token
+### 5. Refresh Access Token
 
-Issues a new access + refresh token pair using the existing refresh token. Blacklists the previous pair.
+Rotates the access token using the HttpOnly refresh token cookie.
 
-- **Method**: `POST`
-- **Path**: `/auth/refresh-token`
-- **Auth**: Send `refreshToken` cookie (set automatically by login). No request body required.
-- **Response (200 OK)**:
+- **Endpoint**: `POST /api/v1/auth/refresh-token`
+- **Authentication**: None (Reads `refreshToken` cookie automatically)
+
+**Response (200 OK)**:
 
 ```json
 {
@@ -176,24 +183,21 @@ Issues a new access + refresh token pair using the existing refresh token. Black
   "statusCode": 200,
   "message": "Token refreshed successfully.",
   "data": {
-    "tokens": {
-      "accessToken": "<new-jwt>",
-      "refreshToken": "<new-jwt>"
-    }
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
 }
 ```
 
 ---
 
-### 6. Logout
+### 6. Logout User
 
-Blacklists the current access and refresh tokens in Redis and clears auth cookies.
+Revokes tokens by blacklisting them in the Redis store.
 
-- **Method**: `POST`
-- **Path**: `/auth/logout`
-- **Auth Required**: Yes (`Authorization: Bearer <token>` or cookie)
-- **Response (200 OK)**:
+- **Endpoint**: `POST /api/v1/auth/logout`
+- **Authentication**: Required (`Bearer <token>` or cookie)
+
+**Response (200 OK)**:
 
 ```json
 {
@@ -207,17 +211,20 @@ Blacklists the current access and refresh tokens in Redis and clears auth cookie
 
 ### 7. Forgot Password
 
-Sends a password reset link to the user's email. The link contains a short-lived JWT reset token.
+Sends a password reset link containing a secure recovery token to the registered email.
 
-- **Method**: `POST`
-- **Path**: `/auth/forgot-password`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/forgot-password`
+- **Authentication**: None
+
+**Request Body**:
 
 ```json
-{ "email": "john@example.com" }
+{
+  "email": "john.doe@example.com"
+}
 ```
 
-- **Response (200 OK)**:
+**Response (200 OK)**:
 
 ```json
 {
@@ -227,42 +234,45 @@ Sends a password reset link to the user's email. The link contains a short-lived
 }
 ```
 
-> **Security**: Always returns `200` regardless of whether the email exists (prevents enumeration). A per-email cooldown prevents abuse.
+> [!TIP]
+> The response message is generic. This prevents user enumeration vulnerability (where attackers check if an email exists by analyzing API success/failure outputs).
 
 ---
 
 ### 8. Resend Forgot Password Email
 
-Re-sends the password reset email if the cooldown has expired.
+Resends the recovery link after verifying the cooldown lock.
 
-- **Method**: `POST`
-- **Path**: `/auth/resend-forgot-password`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/resend-forgot-password`
+- **Authentication**: None
+
+**Request Body**:
 
 ```json
-{ "email": "john@example.com" }
+{
+  "email": "john.doe@example.com"
+}
 ```
-
-- Same response shape and cooldown behaviour as Forgot Password.
 
 ---
 
 ### 9. Reset Password
 
-Validates the reset token and updates the user's password. Blacklists the token after use.
+Validates the reset token and updates the user's password.
 
-- **Method**: `POST`
-- **Path**: `/auth/reset-password`
-- **Request Body**:
+- **Endpoint**: `POST /api/v1/auth/reset-password`
+- **Authentication**: None
+
+**Request Body**:
 
 ```json
 {
-  "token": "<reset-jwt-from-email-link>",
-  "newPassword": "NewSecurePass2#"
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp...",
+  "newPassword": "NewSecurePassword456!"
 }
 ```
 
-- **Response (200 OK)**:
+**Response (200 OK)**:
 
 ```json
 {
@@ -272,28 +282,35 @@ Validates the reset token and updates the user's password. Blacklists the token 
 }
 ```
 
-- Returns `400 Bad Request` if token is invalid, expired, or already used.
-
 ---
 
-## Error Responses
+## ❌ Error Codes & Responses
+
+All validation and execution errors return standardized response payloads:
 
 ```json
 {
   "success": false,
-  "statusCode": 401,
-  "message": "Invalid credentials.",
-  "errorCode": "UNAUTHORIZED",
-  "timestamp": "2026-06-12T14:32:00.000Z",
-  "path": "/auth/login"
+  "statusCode": 400,
+  "message": "Validation error",
+  "errorCode": "VALIDATION_ERROR",
+  "timestamp": "2026-06-21T16:43:00.000Z",
+  "path": "/api/v1/auth/register",
+  "errors": [
+    {
+      "field": "password",
+      "message": "Password is too weak"
+    }
+  ]
 }
 ```
 
-| Status | Scenario                                                |
-| ------ | ------------------------------------------------------- |
-| `400`  | Validation error, invalid/expired OTP or reset token    |
-| `401`  | Wrong password or missing/invalid access token          |
-| `403`  | Account inactive, suspended, banned, or deleted         |
-| `404`  | User not found (e.g. resend OTP for non-existent email) |
-| `409`  | Email already registered and verified                   |
-| `429`  | OTP or forgot-password resend cooldown active           |
+### Common Authentication Error Codes
+
+| Status Code | Error Code          | Description                                                         |
+| ----------- | ------------------- | ------------------------------------------------------------------- |
+| `400`       | `VALIDATION_ERROR`  | Request payload fails Zod validation constraints.                   |
+| `401`       | `UNAUTHORIZED`      | Invalid credentials, expired token, or blacklisted token.           |
+| `403`       | `FORBIDDEN`         | The account is deactivated, suspended, or banned.                   |
+| `409`       | `CONFLICT`          | Registering an email that is already verified.                      |
+| `429`       | `TOO_MANY_REQUESTS` | Cooldown period for OTP or password recovery email is still active. |

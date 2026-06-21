@@ -1,111 +1,82 @@
-# User Module API Documentation
+# 👤 User Management Module
 
-This module manages user profiles, avatars, passwords, statuses, roles, and administrative lifecycle workflows. It incorporates advanced searching, filtering, range queries, sorting, pagination, and file uploads (Cloudinary).
+The **User Management Module** handles profile management, security adjustments, avatar media uploading via Cloudinary, and advanced administrative controls (such as filtering, sorting, role mapping, deactivation, and hard/soft deletion of user records).
 
 ---
 
-## Roles & Access Control
+## 🔐 Role-Based Access Control (RBAC)
 
-| Role          | Description                                                                                  |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| `USER`        | Access to own profile, avatar management, and password change only.                          |
-| `ADMIN`       | All USER permissions + list/search users, update status, deactivate/reactivate, soft delete. |
-| `SUPER_ADMIN` | All ADMIN permissions + update roles, hard delete, and manual user creation.                 |
+The application enforces a tiered authorization hierarchy across all endpoints using the `checkAuth` middleware:
+
+| Role          | Hierarchy Level | Capabilities & Access                                                                                                                         |
+| ------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `USER`        | Level 1         | Access to their own profile, password changing, deactivation, and avatar management.                                                          |
+| `ADMIN`       | Level 2         | All `USER` permissions, plus user search/filtering, retrieving profiles by ID, updating statuses, and soft-deleting users.                    |
+| `SUPER_ADMIN` | Level 3         | Complete system control: all `ADMIN` permissions, plus manual user creation, role promotions/demotions, and permanent database hard-deletion. |
 
 ### Endpoint Permission Matrix
 
-| Action                  | Method   | Path                        | Roles                          |
-| ----------------------- | -------- | --------------------------- | ------------------------------ |
-| Create user manually    | `POST`   | `/users`                    | `ADMIN`, `SUPER_ADMIN`         |
-| List all users          | `GET`    | `/users`                    | `ADMIN`, `SUPER_ADMIN`         |
-| Get own profile         | `GET`    | `/users/me`                 | `USER`, `ADMIN`, `SUPER_ADMIN` |
-| Update own profile      | `PATCH`  | `/users/me/profile`         | `USER`, `ADMIN`, `SUPER_ADMIN` |
-| Upload / replace avatar | `PATCH`  | `/users/me/avatar`          | `USER`, `ADMIN`, `SUPER_ADMIN` |
-| Delete own avatar       | `DELETE` | `/users/me/avatar`          | `USER`, `ADMIN`, `SUPER_ADMIN` |
-| Change own password     | `PATCH`  | `/users/me/change-password` | `USER`, `ADMIN`, `SUPER_ADMIN` |
-| Get user by ID          | `GET`    | `/users/:id`                | `ADMIN`, `SUPER_ADMIN`         |
-| Update user status      | `PATCH`  | `/users/:id/status`         | `ADMIN`, `SUPER_ADMIN`         |
-| Update user role        | `PATCH`  | `/users/:id/role`           | `SUPER_ADMIN`                  |
-| Deactivate user         | `PATCH`  | `/users/:id/deactivate`     | `ADMIN`, `SUPER_ADMIN`         |
-| Reactivate user         | `PATCH`  | `/users/:id/reactivate`     | `ADMIN`, `SUPER_ADMIN`         |
-| Soft delete user        | `DELETE` | `/users/:id`                | `ADMIN`, `SUPER_ADMIN`         |
-| Hard delete user        | `DELETE` | `/users/:id/hard`           | `SUPER_ADMIN`                  |
+| Method   | Path                               | Description                                            | Access Requirement     |
+| -------- | ---------------------------------- | ------------------------------------------------------ | ---------------------- |
+| `POST`   | `/api/v1/users`                    | Manually seed/create a pre-verified user               | `ADMIN`, `SUPER_ADMIN` |
+| `GET`    | `/api/v1/users`                    | List, search, filter, and paginate users               | `ADMIN`, `SUPER_ADMIN` |
+| `GET`    | `/api/v1/users/me`                 | Fetch active user's own profile data                   | Any Authenticated User |
+| `PATCH`  | `/api/v1/users/me`                 | Update text profile details (JSON format)              | Any Authenticated User |
+| `PATCH`  | `/api/v1/users/me/profile`         | Update profile fields and/or upload avatar (Multipart) | Any Authenticated User |
+| `PATCH`  | `/api/v1/users/me/avatar`          | Upload or replace user's profile avatar (Multipart)    | Any Authenticated User |
+| `DELETE` | `/api/v1/users/me/avatar`          | Delete user's avatar image from database & Cloudinary  | Any Authenticated User |
+| `PATCH`  | `/api/v1/users/me/change-password` | Update account password                                | Any Authenticated User |
+| `PATCH`  | `/api/v1/users/me/deactivate`      | Deactivate account (sets status to `INACTIVE`)         | Any Authenticated User |
+| `PATCH`  | `/api/v1/users/me/reactivate`      | Reactivate account (sets status to `ACTIVE`)           | Any Authenticated User |
+| `GET`    | `/api/v1/users/:id`                | Fetch detailed user data by primary ID key             | `ADMIN`, `SUPER_ADMIN` |
+| `PATCH`  | `/api/v1/users/:id/status`         | Adjust user status (e.g. suspend or ban)               | `ADMIN`, `SUPER_ADMIN` |
+| `PATCH`  | `/api/v1/users/:id/role`           | Promote or demote user access tier                     | `SUPER_ADMIN`          |
+| `DELETE` | `/api/v1/users/:id`                | Soft-delete user (sets `deletedAt` and status)         | `ADMIN`, `SUPER_ADMIN` |
+| `DELETE` | `/api/v1/users/:id/hard`           | Permanently wipe user record from DB                   | `SUPER_ADMIN`          |
 
 ---
 
-## API Endpoints Reference
+## 🔍 Filtering, Searching & Pagination
 
-### 1. Create User (Admin / Super Admin)
+The `GET /api/v1/users` endpoint utilizes an advanced, type-safe `QueryBuilder` engine supporting dynamic query parameters:
 
-- **Method**: `POST`
-- **Path**: `/users`
-- **Content-Type**: `application/json`
-- **Request Body**:
+### Core Pagination & Sorting
 
-```json
-{
-  "email": "jane@example.com",
-  "password": "SecurePass1#",
-  "username": "janedoe",
-  "role": "USER",
-  "status": "ACTIVE",
-  "firstName": "Jane",
-  "lastName": "Doe",
-  "gender": "FEMALE",
-  "phone": "+1234567890"
-}
-```
+- `page`: Page index (default: `1`).
+- `limit`: Items per response payload (default: `10`, max: `100`).
+- `sortBy`: Database schema field key to sort by (default: `createdAt`).
+- `sortOrder`: Sorting direction, either `asc` or `desc` (default: `desc`).
 
-- **Response (201 Created)**: Returns the newly created user object (same shape as profile response).
-- **Notes**: Defaults `role` to `USER` and `status` to `ACTIVE`. User is pre-verified (`isVerified: true`). A `CREDENTIAL` auth provider is seeded automatically.
+### Search Parameters
 
----
+- `searchTerm`: Matches substrings in `email`, `username`, `firstName`, `lastName`, and `phone` using case-insensitive partial searches.
 
-### 2. List All Users (Admin / Super Admin)
+### Strict Equality Filters
 
-- **Method**: `GET`
-- **Path**: `/users`
-- **Query Parameters**:
+- `role`: Filter by exact role value (`USER` \| `ADMIN` \| `SUPER_ADMIN`).
+- `status`: Filter by status (`PENDING` \| `ACTIVE` \| `INACTIVE` \| `SUSPENDED` \| `BANNED` \| `DELETED`).
+- `gender`: Filter by user gender (`MALE` \| `FEMALE` \| `OTHER` \| `PREFER_NOT_TO_SAY`).
+- `isVerified`: Filter by boolean email verification status (`true` \| `false`).
 
-| Param             | Type    | Description                                                                 |
-| ----------------- | ------- | --------------------------------------------------------------------------- |
-| `page`            | integer | Page number (default: `1`)                                                  |
-| `limit`           | integer | Records per page (default: `10`)                                            |
-| `sortBy`          | string  | Field name to sort by (default: `createdAt`)                                |
-| `sortOrder`       | enum    | `asc` \| `desc` (default: `desc`)                                           |
-| `searchTerm`      | string  | Matches `email`, `username`, `firstName`, `lastName`, `phone`               |
-| `role`            | enum    | `USER` \| `ADMIN` \| `SUPER_ADMIN`                                          |
-| `status`          | enum    | `PENDING` \| `ACTIVE` \| `INACTIVE` \| `SUSPENDED` \| `BANNED` \| `DELETED` |
-| `isVerified`      | boolean | `true` \| `false`                                                           |
-| `gender`          | enum    | `MALE` \| `FEMALE` \| `OTHER` \| `PREFER_NOT_TO_SAY`                        |
-| `createdAtFrom`   | string  | ISO datetime or date (range start)                                          |
-| `createdAtTo`     | string  | ISO datetime or date (range end)                                            |
-| `lastLoginAtFrom` | string  | ISO datetime or date (range start)                                          |
-| `lastLoginAtTo`   | string  | ISO datetime or date (range end)                                            |
-| `dateOfBirthFrom` | string  | ISO datetime or date (range start)                                          |
-| `dateOfBirthTo`   | string  | ISO datetime or date (range end)                                            |
-| `avatarSizeMin`   | number  | Minimum avatar size in bytes                                                |
-| `avatarSizeMax`   | number  | Maximum avatar size in bytes                                                |
+### Range Filters
 
-- **Response (200 OK)**:
+Query parameters support min/max range boundaries in format `<Param>From` and `<Param>To`:
 
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Users fetched successfully",
-  "meta": { "page": 1, "limit": 10, "total": 42, "totalPage": 5 },
-  "data": [{ "id": "...", "email": "..." }]
-}
-```
+- **Dates**: `createdAtFrom` / `createdAtTo`, `lastLoginAtFrom` / `lastLoginAtTo`, `dateOfBirthFrom` / `dateOfBirthTo` (Must match ISO 8601 strings, e.g. `2026-06-21`).
+- **Avatar File Size**: `avatarSizeMin` / `avatarSizeMax` (Integer value matching bytes).
 
 ---
 
-### 3. Get Own Profile
+## 📡 API Endpoint Reference
 
-- **Method**: `GET`
-- **Path**: `/users/me`
-- **Response (200 OK)**:
+### 1. Get Own Profile
+
+Retrieves the logged-in user's profile and relational data.
+
+- **Endpoint**: `GET /api/v1/users/me`
+- **Headers**: `Authorization: Bearer <accessToken>`
+
+**Response (200 OK)**:
 
 ```json
 {
@@ -113,8 +84,8 @@ This module manages user profiles, avatars, passwords, statuses, roles, and admi
   "statusCode": 200,
   "message": "User profile fetched successfully",
   "data": {
-    "id": "e229e470-...",
-    "email": "john@example.com",
+    "id": "e229e470-8b1c-4bba-9b4b-ea0e12345678",
+    "email": "john.doe@example.com",
     "username": "johndoe",
     "role": "USER",
     "status": "ACTIVE",
@@ -123,23 +94,23 @@ This module manages user profiles, avatars, passwords, statuses, roles, and admi
     "lastName": "Doe",
     "gender": "MALE",
     "phone": "+1234567890",
-    "bio": "Software Engineer",
-    "address": "Silicon Valley",
+    "bio": "Lead Software Engineer",
+    "address": "San Francisco, CA",
     "dateOfBirth": "1990-01-01T00:00:00.000Z",
-    "timezone": "UTC",
-    "locale": "en",
-    "lastLoginAt": "2026-06-12T14:28:24.000Z",
+    "timezone": "America/Los_Angeles",
+    "locale": "en-US",
+    "lastLoginAt": "2026-06-21T10:00:00.000Z",
     "deletedAt": null,
-    "createdAt": "2026-06-12T14:28:24.000Z",
-    "updatedAt": "2026-06-12T14:28:24.000Z",
+    "createdAt": "2026-06-20T12:00:00.000Z",
+    "updatedAt": "2026-06-21T10:00:00.000Z",
     "avatar": {
-      "id": "a1b2c3d4-...",
-      "url": "https://res.cloudinary.com/demo/image/upload/v1234/avatar.png",
-      "width": 500,
-      "height": 500,
-      "size": 15420,
-      "createdAt": "2026-06-12T14:28:24.000Z",
-      "updatedAt": "2026-06-12T14:28:24.000Z"
+      "id": "d1e2f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f6g",
+      "url": "https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/avatars/user-avatar.png",
+      "width": 400,
+      "height": 400,
+      "size": 25420,
+      "createdAt": "2026-06-20T12:30:00.000Z",
+      "updatedAt": "2026-06-20T12:30:00.000Z"
     }
   }
 }
@@ -147,182 +118,88 @@ This module manages user profiles, avatars, passwords, statuses, roles, and admi
 
 ---
 
-### 4. Update Own Profile (text data only)
+### 2. Update Own Profile (JSON)
 
-- **Method**: `PATCH`
-- **Path**: `/users/me/profile`
-- **Content-Type**: `application/json`
-- **Request Body** (all fields optional / nullable):
+Updates textual profile parameters. Nullable fields can be explicitly cleared.
 
-```json
-{
-  "firstName": "Jane",
-  "lastName": "Doe",
-  "phone": "+1234567890",
-  "gender": "FEMALE",
-  "bio": "Full Stack Engineer",
-  "address": "New York",
-  "dateOfBirth": "1992-08-15",
-  "timezone": "America/New_York",
-  "locale": "en-US"
-}
-```
+- **Endpoint**: `PATCH /api/v1/users/me`
+- **Headers**: `Authorization: Bearer <accessToken>`, `Content-Type: application/json`
 
-- **Response (200 OK)**: Returns updated user profile.
-
----
-
-### 5. Upload / Replace Own Avatar
-
-- **Method**: `PATCH`
-- **Path**: `/users/me/avatar`
-- **Content-Type**: `multipart/form-data`
-- **Form Field**: `avatar` — image file (`.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`)
-- **Notes**: Replaces the existing avatar automatically (deletes old from Cloudinary + DB).
-- **Response (200 OK)**: Returns updated user profile with new avatar URL.
-
----
-
-### 6. Delete Own Avatar
-
-- **Method**: `DELETE`
-- **Path**: `/users/me/avatar`
-- **Notes**: Deletes file from Cloudinary and removes avatar record from DB.
-- **Response (200 OK)**: Returns user profile with `avatar: null`.
-
----
-
-### 7. Change Own Password
-
-- **Method**: `PATCH`
-- **Path**: `/users/me/change-password`
-- **Content-Type**: `application/json`
-- **Request Body**:
+**Request Body**:
 
 ```json
 {
-  "oldPassword": "CurrentPass1#",
-  "newPassword": "NewSecurePass2#"
+  "firstName": "Jonathan",
+  "bio": "Staff Engineer & Tech Lead",
+  "address": "Seattle, WA",
+  "dateOfBirth": "1989-11-23"
 }
 ```
 
-- **Validation Rules**:
-  - `oldPassword` must match the current stored hash.
-  - `newPassword` must be at least 8 characters.
-  - `newPassword` cannot be the same as `oldPassword`.
-- **Response (200 OK)**:
+**Response (200 OK)**: Returns the updated user profile JSON object.
+
+---
+
+### 3. Upload / Replace Own Avatar
+
+Uploads an image file to Cloudinary and registers it in the database.
+
+- **Endpoint**: `PATCH /api/v1/users/me/avatar`
+- **Headers**: `Authorization: Bearer <accessToken>`, `Content-Type: multipart/form-data`
+- **Body Form-Data**:
+  - `avatar`: `<Binary File>` (Supported types: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`)
+
+> [!TIP]
+> If the user has an existing avatar, the system automatically calls the Cloudinary SDK to destroy the old asset from their CDN storage and deletes the historical avatar entry from the database before completing the new upload.
+
+---
+
+### 4. Change Own Password
+
+Updates user credentials with validation checks.
+
+- **Endpoint**: `PATCH /api/v1/users/me/change-password`
+- **Headers**: `Authorization: Bearer <accessToken>`, `Content-Type: application/json`
+
+**Request Body**:
 
 ```json
 {
-  "success": true,
-  "statusCode": 200,
-  "message": "Password changed successfully",
-  "data": null
+  "oldPassword": "SecurePassword123!",
+  "newPassword": "BrandNewSecurePassword456!"
 }
 ```
 
----
+**Validation Details**:
 
-### 8. Get User by ID (Admin / Super Admin)
-
-- **Method**: `GET`
-- **Path**: `/users/:id`
-- **Response (200 OK)**: Same shape as own-profile response.
+- `oldPassword` must match the stored password hash.
+- `newPassword` must be a strong password.
+- `newPassword` cannot be identical to the `oldPassword`.
 
 ---
 
-### 9. Update User Status (Admin / Super Admin)
+### 5. Deactivate Account
 
-- **Method**: `PATCH`
-- **Path**: `/users/:id/status`
-- **Request Body**:
+Sets the active user's status to `INACTIVE`. Subsequent attempts to log in will be rejected until reactivated.
 
-```json
-{ "status": "SUSPENDED" }
-```
-
-- **Valid values**: `PENDING` | `ACTIVE` | `INACTIVE` | `SUSPENDED` | `BANNED` | `DELETED`
+- **Endpoint**: `PATCH /api/v1/users/me/deactivate`
+- **Headers**: `Authorization: Bearer <accessToken>`
 
 ---
 
-### 10. Update User Role (Super Admin only)
+## 🗑️ Deletion Mechanics (Soft vs Hard)
 
-- **Method**: `PATCH`
-- **Path**: `/users/:id/role`
-- **Request Body**:
+### Soft Delete (`DELETE /api/v1/users/:id`)
 
-```json
-{ "role": "ADMIN" }
-```
+- Initiated by an `ADMIN` or `SUPER_ADMIN`.
+- Sets the user's `deletedAt` field to the current timestamp.
+- Updates the user's status to `DELETED`.
+- Retains database records for auditing, but the user is excluded from normal queries and index views.
 
-- **Valid values**: `USER` | `ADMIN` | `SUPER_ADMIN`
+### Hard Delete (`DELETE /api/v1/users/:id/hard`)
 
----
-
-### 11. Deactivate User (Admin / Super Admin)
-
-- **Method**: `PATCH`
-- **Path**: `/users/:id/deactivate`
-- **Notes**: Sets user status to `INACTIVE`. No request body required.
-- **Response (200 OK)**: Returns updated user with `status: "INACTIVE"`.
-
----
-
-### 12. Reactivate User (Admin / Super Admin)
-
-- **Method**: `PATCH`
-- **Path**: `/users/:id/reactivate`
-- **Notes**: Sets user status to `ACTIVE`. No request body required.
-- **Response (200 OK)**: Returns updated user with `status: "ACTIVE"`.
-
----
-
-### 13. Soft Delete User (Admin / Super Admin)
-
-- **Method**: `DELETE`
-- **Path**: `/users/:id`
-- **Notes**: Sets `deletedAt` timestamp and changes status to `DELETED`. User is excluded from standard queries but record is preserved in DB.
-- **Response (200 OK)**: Returns user with `deletedAt` populated.
-
----
-
-### 14. Hard Delete User (Super Admin only)
-
-- **Method**: `DELETE`
-- **Path**: `/users/:id/hard`
-- **Notes**: Fully purges the user record and all relations from the database. Avatar file is deleted from Cloudinary first.
-- **Response (200 OK)**:
-
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "User permanently deleted successfully",
-  "data": null
-}
-```
-
----
-
-## Error Responses
-
-All errors follow the standard application error envelope:
-
-```json
-{
-  "success": false,
-  "statusCode": 404,
-  "message": "User not found",
-  "errorCode": "NOT_FOUND",
-  "timestamp": "2026-06-12T14:32:00.000Z",
-  "path": "/users/bad-id"
-}
-```
-
-| Status | Scenario                                |
-| ------ | --------------------------------------- |
-| `400`  | Validation failure, same password reuse |
-| `401`  | Unauthenticated or wrong old password   |
-| `403`  | Insufficient role permissions           |
-| `404`  | User not found                          |
-| `409`  | Email or username already exists        |
+- Restricted strictly to `SUPER_ADMIN`.
+- Retrieves user relation keys.
+- Deletes files associated with the user from Cloudinary's media servers.
+- Executes cascade deletes to clean up auth records, avatars, tokens, and verification files.
+- Permanently purges the user row from the database.

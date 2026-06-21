@@ -1,10 +1,32 @@
 {
-  "name": "express-postgresql",
+  "name": "express-prisma-postgresql-starter",
   "version": "1.0.0",
-  "license": "ISC",
-  "author": "",
-  "description": "",
-  "keywords": [],
+  "description": "Production-grade Express.js + Prisma + PostgreSQL + Redis starter template with strict TypeScript, secure authentication, and advanced querying.",
+  "keywords": [
+    "express",
+    "prisma",
+    "postgresql",
+    "redis",
+    "typescript",
+    "boilerplate",
+    "starter-kit",
+    "rest-api",
+    "authentication",
+    "jwt",
+    "zod",
+    "winston-logger",
+    "clean-architecture"
+  ],
+  "homepage": "https://github.com/almamun2b/express-prisma#readme",
+  "bugs": {
+    "url": "https://github.com/almamun2b/express-prisma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/almamun2b/express-prisma.git"
+  },
+  "license": "MIT",
+  "author": "Al Mamun <almamun2b@gmail.com>",
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
