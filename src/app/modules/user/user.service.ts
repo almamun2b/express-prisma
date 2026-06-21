@@ -18,16 +18,16 @@ import type {
   TUserQueryOptions,
 } from './user.types';
 
-// ToDo With QueryBuilder
-const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
-  const { searchTerm, ...filters } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
-  const rangeFilters = pick(query, [...UserConstants.USER_RANGE_FILTERABLE_FIELDS]);
+// Without QueryBuilder
+const getAllUsersFromDBManually = async (query: TUserQueryOptions = {}) => {
   const {
     page = 1,
     limit = 10,
     sortBy = 'createdAt',
     sortOrder = 'desc',
-  } = pick(query, [...UserConstants.OPTIONS]);
+    searchTerm,
+    ...filters
+  } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
 
   const andConditions: Prisma.UserWhereInput[] = [];
 
@@ -63,42 +63,42 @@ const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
   }
 
   // 3. Range filters
-  if (rangeFilters.createdAtFrom || rangeFilters.createdAtTo) {
+  if (filters.createdAtFrom || filters.createdAtTo) {
     andConditions.push({
       createdAt: {
-        ...(rangeFilters.createdAtFrom && { gte: new Date(rangeFilters.createdAtFrom) }),
-        ...(rangeFilters.createdAtTo && { lte: new Date(rangeFilters.createdAtTo) }),
+        ...(filters.createdAtFrom && { gte: new Date(filters.createdAtFrom) }),
+        ...(filters.createdAtTo && { lte: new Date(filters.createdAtTo) }),
       },
     });
   }
 
-  if (rangeFilters.lastLoginAtFrom || rangeFilters.lastLoginAtTo) {
+  if (filters.lastLoginAtFrom || filters.lastLoginAtTo) {
     andConditions.push({
       lastLoginAt: {
-        ...(rangeFilters.lastLoginAtFrom && { gte: new Date(rangeFilters.lastLoginAtFrom) }),
-        ...(rangeFilters.lastLoginAtTo && { lte: new Date(rangeFilters.lastLoginAtTo) }),
+        ...(filters.lastLoginAtFrom && { gte: new Date(filters.lastLoginAtFrom) }),
+        ...(filters.lastLoginAtTo && { lte: new Date(filters.lastLoginAtTo) }),
       },
     });
   }
 
-  if (rangeFilters.dateOfBirthFrom || rangeFilters.dateOfBirthTo) {
+  if (filters.dateOfBirthFrom || filters.dateOfBirthTo) {
     andConditions.push({
       dateOfBirth: {
-        ...(rangeFilters.dateOfBirthFrom && { gte: new Date(rangeFilters.dateOfBirthFrom) }),
-        ...(rangeFilters.dateOfBirthTo && { lte: new Date(rangeFilters.dateOfBirthTo) }),
+        ...(filters.dateOfBirthFrom && { gte: new Date(filters.dateOfBirthFrom) }),
+        ...(filters.dateOfBirthTo && { lte: new Date(filters.dateOfBirthTo) }),
       },
     });
   }
 
-  if (rangeFilters.avatarSizeMin || rangeFilters.avatarSizeMax) {
+  if (filters.avatarSizeMin || filters.avatarSizeMax) {
     andConditions.push({
       avatar: {
         size: {
-          ...(rangeFilters.avatarSizeMin !== undefined && {
-            gte: Number(rangeFilters.avatarSizeMin),
+          ...(filters.avatarSizeMin !== undefined && {
+            gte: Number(filters.avatarSizeMin),
           }),
-          ...(rangeFilters.avatarSizeMax !== undefined && {
-            lte: Number(rangeFilters.avatarSizeMax),
+          ...(filters.avatarSizeMax !== undefined && {
+            lte: Number(filters.avatarSizeMax),
           }),
         },
       },
@@ -137,15 +137,15 @@ const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
 };
 
 // With QueryBuilder
-const getAllUsersWithQueryBuilder = async (query: TUserQueryOptions = {}) => {
-  const { searchTerm, ...filters } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
-  const rangeFilters = pick(query, [...UserConstants.USER_RANGE_FILTERABLE_FIELDS]);
+const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
   const {
     page = 1,
     limit = 10,
     sortBy = 'createdAt',
     sortOrder = 'desc',
-  } = pick(query, [...UserConstants.OPTIONS]);
+    searchTerm,
+    ...filters
+  } = pick(query, [...UserConstants.USER_FILTERABLE_FIELDS]);
 
   const result = await new QueryBuilder(prisma.user)
     .search({
@@ -159,10 +159,10 @@ const getAllUsersWithQueryBuilder = async (query: TUserQueryOptions = {}) => {
       isVerified: filters.isVerified,
     })
     .range({
-      createdAt: { from: rangeFilters.createdAtFrom, to: rangeFilters.createdAtTo },
-      lastLoginAt: { from: rangeFilters.lastLoginAtFrom, to: rangeFilters.lastLoginAtTo },
-      dateOfBirth: { from: rangeFilters.dateOfBirthFrom, to: rangeFilters.dateOfBirthTo },
-      'avatar.size': { from: rangeFilters.avatarSizeMin, to: rangeFilters.avatarSizeMax },
+      createdAt: { from: filters.createdAtFrom, to: filters.createdAtTo },
+      lastLoginAt: { from: filters.lastLoginAtFrom, to: filters.lastLoginAtTo },
+      dateOfBirth: { from: filters.dateOfBirthFrom, to: filters.dateOfBirthTo },
+      'avatar.size': { from: filters.avatarSizeMin, to: filters.avatarSizeMax },
     })
     .sortBy({ sortBy, sortOrder })
     .paginate({ page, limit })
@@ -552,7 +552,7 @@ const hardDeleteUserInDB = async (userId: string) => {
 
 export const UserServices = {
   getAllUsersFromDB,
-  getAllUsersWithQueryBuilder,
+  getAllUsersFromDBManually,
   getUserByIdFromDB,
   updateUserProfileInDB,
   updateUserStatusOrRoleInDB,
