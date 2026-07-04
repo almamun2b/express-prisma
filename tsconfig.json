@@ -28,6 +28,6 @@
     "skipLibCheck": true,
     "incremental": true
   },
-  "include": ["generated/**/*.ts", "prisma/**/*.ts", "src/**/*.ts", "*.ts"],
+  "include": ["api/**/*.ts", "generated/**/*.ts", "prisma/**/*.ts", "src/**/*.ts", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }
