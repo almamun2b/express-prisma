@@ -66,7 +66,9 @@ const startServer = async () => {
   await bootstrap();
 };
 
-void startServer();
+if (!process.env['VERCEL']) {
+  void startServer();
+}
 
 process.on('unhandledRejection', (error: Error) => {
   logger.error(Messages.UNHANDLED_REJECTION_DETECTED, error);
@@ -85,3 +87,6 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   void shutdown('SIGINT', 0);
 });
+
+// Vercel serverless handler
+export default app;
