@@ -1,15 +1,16 @@
 {
   "version": 2,
+  "buildCommand": "pnpm install && pnpm build",
   "builds": [
     {
       "src": "dist/src/server.js",
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "dist/src/server.js"
+      "source": "/(.*)",
+      "destination": "/dist/src/server.js"
     }
   ]
 }
