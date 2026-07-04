@@ -27,12 +27,21 @@ const otpCodeField = z
   .length(6, 'Verification code must be exactly 6 digits')
   .regex(/^\d{6}$/, 'Verification code must contain only digits');
 
-const registerSchema = z.object({
-  firstName: nameField('First name'),
-  lastName: nameField('Last name'),
-  email: emailField,
-  password: passwordField,
-});
+const registerSchema = z
+  .object({
+    firstName: nameField('First name'),
+    lastName: nameField('Last name'),
+    email: emailField,
+    password: passwordField,
+    confirmPassword: z
+      .string()
+      .min(1, 'Confirm password is required')
+      .max(128, 'Confirm password must be at most 128 characters'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  });
 
 const loginSchema = z.object({
   email: emailField,

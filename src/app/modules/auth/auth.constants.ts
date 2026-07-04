@@ -2,6 +2,7 @@ const AuthMessages = {
   REGISTER_SUCCESS: 'Registration successful. Please check your email for a verification code.',
   EMAIL_ALREADY_EXISTS: 'An account with this email already exists.',
   USER_NOT_VERIFIED: 'Your email is not verified. Please verify your email to continue.',
+  PASSWORDS_NOT_MATCH: 'Passwords do not match',
 
   RESEND_SUCCESS: 'Verification code resent successfully. Please check your email.',
   RESEND_COOLDOWN: 'Please wait before requesting another code.',
