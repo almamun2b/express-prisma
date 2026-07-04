@@ -159,8 +159,7 @@ Authenticates the user and sets HTTP-Only tokens.
       "lastName": "Doe",
       "role": "USER",
       "status": "ACTIVE"
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIsIn..."
+    }
   }
 }
 ```
@@ -183,10 +182,7 @@ Rotates the access token using the HttpOnly refresh token cookie.
 {
   "success": true,
   "statusCode": 200,
-  "message": "Token refreshed successfully.",
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
+  "message": "Token refreshed successfully."
 }
 ```
 
