@@ -31,7 +31,15 @@ import type {
 import { AuthUtils } from './auth.utils';
 
 const register = async (input: TRegisterInput) => {
-  const { firstName, lastName, email, password } = input;
+  const { firstName, lastName, email, password, confirmPassword } = input;
+
+  if (password !== confirmPassword) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      AuthMessages.PASSWORDS_NOT_MATCH,
+      Codes.BAD_REQUEST
+    );
+  }
 
   const existing = await prisma.user.findUnique({
     where: { email },

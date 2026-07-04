@@ -36,6 +36,7 @@
 # Test User Credentials
 @email = super@gmail.com
 @password = Password1#
+@confirmPassword = Password1#
 @firstName = John
 @lastName = Doe
 
@@ -72,7 +73,8 @@ Content-Type: application/json
   "firstName": "{{firstName}}",
   "lastName": "{{lastName}}",
   "email": "{{email}}",
-  "password": "{{password}}"
+  "password": "{{password}}",
+  "confirmPassword": "{{confirmPassword}}"
 }
 
 ### 2. Resend Email Verification Code (OTP)
