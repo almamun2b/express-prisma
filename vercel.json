@@ -1,41 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
-  "devCommand": "pnpm dev",
   "installCommand": "pnpm install",
-  "version": 2,
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/src/server.js"
+      "destination": "/src/server.js"
     }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
-    }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "main": true,
-      "dev": true,
-      "preview": true
-    }
-  }
+  ]
 }
