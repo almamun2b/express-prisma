@@ -1,17 +1,82 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "express",
+  "framework": null,
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
   "version": 2,
-  "builds": [
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database-url",
+      "REDIS_HOST": "@redis-host",
+      "REDIS_PORT": "@redis-port",
+      "REDIS_USERNAME": "@redis-username",
+      "REDIS_PASSWORD": "@redis-password",
+      "CLOUDINARY_CLOUD_NAME": "@cloudinary-cloud-name",
+      "CLOUDINARY_API_KEY": "@cloudinary-api-key",
+      "CLOUDINARY_API_SECRET": "@cloudinary-api-secret",
+      "JWT_ACCESS_TOKEN_SECRET": "@jwt-access-token-secret",
+      "JWT_REFRESH_TOKEN_SECRET": "@jwt-refresh-token-secret",
+      "JWT_RESET_PASS_SECRET": "@jwt-reset-pass-secret",
+      "EMAIL_SENDER_EMAIL": "@email-sender-email",
+      "EMAIL_SENDER_APP_PASS": "@email-sender-app-pass",
+      "CLIENT_URL": "@client-url",
+      "CORS_ORIGINS": "@cors-origins"
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "REDIS_HOST": "@redis-host",
+    "REDIS_PORT": "@redis-port",
+    "REDIS_USERNAME": "@redis-username",
+    "REDIS_PASSWORD": "@redis-password",
+    "CLOUDINARY_CLOUD_NAME": "@cloudinary-cloud-name",
+    "CLOUDINARY_API_KEY": "@cloudinary-api-key",
+    "CLOUDINARY_API_SECRET": "@cloudinary-api-secret",
+    "JWT_ACCESS_TOKEN_SECRET": "@jwt-access-token-secret",
+    "JWT_REFRESH_TOKEN_SECRET": "@jwt-refresh-token-secret",
+    "JWT_RESET_PASS_SECRET": "@jwt-reset-pass-secret",
+    "EMAIL_SENDER_EMAIL": "@email-sender-email",
+    "EMAIL_SENDER_APP_PASS": "@email-sender-app-pass",
+    "CLIENT_URL": "@client-url",
+    "CORS_ORIGINS": "@cors-origins"
+  },
+  "functions": {
+    "src/server.ts": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "use": "@vercel/node"
+      "source": "/(.*)",
+      "destination": "/dist/src/server.js"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "dist/server.js"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "dev": true,
+      "preview": true
+    }
+  }
 }
