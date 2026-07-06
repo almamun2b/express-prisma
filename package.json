@@ -30,8 +30,9 @@
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
-    "build": "tsc",
     "dev": "tsx watch ./src/server.ts",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
     "lint": "eslint . --report-unused-disable-directives",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",

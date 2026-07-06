@@ -1,6 +1,6 @@
-import { AppError } from '@/app/utils/appError';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { AppError } from '../utils/appError';
 import { Codes } from '../utils/codes';
 
 const Messages = {

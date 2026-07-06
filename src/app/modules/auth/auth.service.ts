@@ -1,23 +1,23 @@
-import { env } from '@/app/config/env';
-import { prisma } from '@/app/config/prisma';
-import { redisClient } from '@/app/config/redis';
-import { AppError } from '@/app/utils/appError';
-import { checkUserStatus } from '@/app/utils/checkUserStatus';
-import { Codes } from '@/app/utils/codes';
-import { comparePassword, hashPassword } from '@/app/utils/hash';
-import { redis, RedisConstants } from '@/app/utils/redis';
-import { clearAuthCookies, setAuthCookies } from '@/app/utils/setCookie';
+import type { Request, Response } from 'express';
+import { AuthProviderName, UserStatus } from 'generated/prisma/client';
+import { StatusCodes } from 'http-status-codes';
+import type { JwtPayload } from 'jsonwebtoken';
+import { env } from 'src/app/config/env';
+import { prisma } from 'src/app/config/prisma';
+import { redisClient } from 'src/app/config/redis';
+import { AppError } from 'src/app/utils/appError';
+import { checkUserStatus } from 'src/app/utils/checkUserStatus';
+import { Codes } from 'src/app/utils/codes';
+import { comparePassword, hashPassword } from 'src/app/utils/hash';
+import { redis, RedisConstants } from 'src/app/utils/redis';
+import { clearAuthCookies, setAuthCookies } from 'src/app/utils/setCookie';
 import {
   createJwtPayload,
   createUserTokens,
   extractBearerToken,
   generateToken,
   verifyToken,
-} from '@/app/utils/token';
-import { AuthProviderName, UserStatus } from '@/generated/prisma/client';
-import type { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import type { JwtPayload } from 'jsonwebtoken';
+} from 'src/app/utils/token';
 import { UserConstants } from '../user/user.constants';
 import { AuthMessages } from './auth.constants';
 import type {
@@ -31,7 +31,15 @@ import type {
 import { AuthUtils } from './auth.utils';
 
 const register = async (input: TRegisterInput) => {
-  const { firstName, lastName, email, password } = input;
+  const { firstName, lastName, email, password, confirmPassword } = input;
+
+  if (password !== confirmPassword) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      AuthMessages.PASSWORDS_NOT_MATCH,
+      Codes.BAD_REQUEST
+    );
+  }
 
   const existing = await prisma.user.findUnique({
     where: { email },

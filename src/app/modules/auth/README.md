@@ -44,6 +44,7 @@ Creates a pending user account and sends a 6-digit OTP code to the email address
   - `lastName`: string (1-50 chars)
   - `email`: valid email format
   - `password`: minimum 8 characters, must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+  - `confirmPassword`: string (1-128 chars) and must be equal to password
 
 **Request Body**:
 
@@ -52,7 +53,8 @@ Creates a pending user account and sends a 6-digit OTP code to the email address
   "firstName": "John",
   "lastName": "Doe",
   "email": "john.doe@example.com",
-  "password": "SecurePassword123!"
+  "password": "SecurePassword123!",
+  "confirmPassword": "SecurePassword123!"
 }
 ```
 
@@ -157,8 +159,7 @@ Authenticates the user and sets HTTP-Only tokens.
       "lastName": "Doe",
       "role": "USER",
       "status": "ACTIVE"
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIsIn..."
+    }
   }
 }
 ```
@@ -181,10 +182,7 @@ Rotates the access token using the HttpOnly refresh token cookie.
 {
   "success": true,
   "statusCode": 200,
-  "message": "Token refreshed successfully.",
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
+  "message": "Token refreshed successfully."
 }
 ```
 

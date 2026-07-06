@@ -1,5 +1,5 @@
-import type { User } from '@/generated/prisma/client';
-import type { UserRole } from '@/generated/prisma/enums';
+import type { User } from 'generated/prisma/client';
+import type { UserRole } from 'generated/prisma/enums';
 
 type TAuthUser = Pick<User, 'id' | 'email' | 'role' | 'status'>;
 /**

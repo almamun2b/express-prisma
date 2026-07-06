@@ -1,15 +1,15 @@
-import { env } from '@/app/config/env';
-import { redisClient } from '@/app/config/redis';
-import { sendEmail } from '@/app/config/smtp.gmail';
-import { AppError } from '@/app/utils/appError';
-import { Codes } from '@/app/utils/codes';
-import { getOtpEmailTemplate, getPasswordResetEmailTemplate } from '@/app/utils/emailTemplate';
-import { logger } from '@/app/utils/logger';
-import { expiresInToMs, formatSeconds } from '@/app/utils/parser';
-import { redis, RedisConstants } from '@/app/utils/redis';
-import { extractBearerToken, verifyToken } from '@/app/utils/token';
 import type { Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { env } from 'src/app/config/env';
+import { redisClient } from 'src/app/config/redis';
+import { sendEmail } from 'src/app/config/smtp.gmail';
+import { AppError } from 'src/app/utils/appError';
+import { Codes } from 'src/app/utils/codes';
+import { getOtpEmailTemplate, getPasswordResetEmailTemplate } from 'src/app/utils/emailTemplate';
+import { logger } from 'src/app/utils/logger';
+import { expiresInToMs, formatSeconds } from 'src/app/utils/parser';
+import { redis, RedisConstants } from 'src/app/utils/redis';
+import { extractBearerToken, verifyToken } from 'src/app/utils/token';
 import { AuthMessages } from './auth.constants';
 
 const Messages = {

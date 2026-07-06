@@ -1,4 +1,4 @@
-import { UserRole } from '@/generated/prisma/client';
+import { UserRole } from 'generated/prisma/client';
 
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
   [UserRole.USER]: 1,

@@ -1,4 +1,4 @@
-import { UserRole } from '@/generated/prisma/client';
+import { UserRole } from 'generated/prisma/client';
 
 export const Permission = {
   USER_LIST: 'user:list',

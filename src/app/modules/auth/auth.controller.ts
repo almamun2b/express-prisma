@@ -1,7 +1,7 @@
-import { catchAsync } from '@/app/utils/catchAsync';
-import { sendResponse } from '@/app/utils/sendResponse';
-import { setAuthCookies } from '@/app/utils/setCookie';
 import { StatusCodes } from 'http-status-codes';
+import { catchAsync } from 'src/app/utils/catchAsync';
+import { sendResponse } from 'src/app/utils/sendResponse';
+import { setAuthCookies } from 'src/app/utils/setCookie';
 import { AuthServices } from './auth.service';
 import type {
   TForgotPasswordInput,
