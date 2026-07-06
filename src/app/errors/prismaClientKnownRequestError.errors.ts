@@ -1,4 +1,4 @@
-import { Prisma } from '@/generated/prisma/client';
+import { Prisma } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
 import type { TCode } from '../types/codes.types';
 import type { IErrorIssue, IGenericErrorResponse } from '../types/errors.types';

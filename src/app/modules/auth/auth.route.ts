@@ -1,7 +1,7 @@
-import { checkAuth } from '@/app/middlewares/checkAuth';
-import { validateRequest } from '@/app/middlewares/validateRequest';
-import { UserRole } from '@/generated/prisma/enums';
 import { Router } from 'express';
+import { UserRole } from 'generated/prisma/enums';
+import { checkAuth } from 'src/app/middlewares/checkAuth';
+import { validateRequest } from 'src/app/middlewares/validateRequest';
 import { AuthController } from './auth.controller';
 import { AuthValidation } from './auth.validation';
 

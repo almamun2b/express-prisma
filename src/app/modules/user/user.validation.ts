@@ -1,4 +1,4 @@
-import { Gender, UserRole, UserStatus } from '@/generated/prisma/client';
+import { Gender, UserRole, UserStatus } from 'generated/prisma/client';
 import { z } from 'zod';
 import { AuthValidation } from '../auth/auth.validation';
 

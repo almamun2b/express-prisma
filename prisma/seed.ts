@@ -1,8 +1,8 @@
-import { env } from '@/app/config/env';
-import { prisma } from '@/app/config/prisma';
-import { hashPassword } from '@/app/utils/hash';
-import { logger } from '@/app/utils/logger';
-import { AuthProviderName, UserRole, UserStatus } from '@/generated/prisma/client';
+import { AuthProviderName, UserRole, UserStatus } from 'generated/prisma/enums';
+import { env } from 'src/app/config/env';
+import { prisma } from 'src/app/config/prisma';
+import { hashPassword } from 'src/app/utils/hash';
+import { logger } from 'src/app/utils/logger';
 
 const Messages = {
   SEEDING_DATABASE: 'Seeding database...',

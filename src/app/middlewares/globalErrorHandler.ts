@@ -1,5 +1,5 @@
-import { Prisma } from '@/generated/prisma/client';
 import type { ErrorRequestHandler } from 'express';
+import { Prisma } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
 import { ZodError } from 'zod';
 import { env } from '../config/env';

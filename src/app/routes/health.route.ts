@@ -1,8 +1,8 @@
-import { prisma } from '@/app/config/prisma';
-import { catchAsync } from '@/app/utils/catchAsync';
-import { sendResponse } from '@/app/utils/sendResponse';
 import { Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { prisma } from '../config/prisma';
+import { catchAsync } from '../utils/catchAsync';
+import { sendResponse } from '../utils/sendResponse';
 
 const router: Router = Router();
 

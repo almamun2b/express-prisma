@@ -1,6 +1,6 @@
-import { env } from '@/app/config/env';
-import { logger } from '@/app/utils/logger';
 import nodemailer from 'nodemailer';
+import { logger } from '../utils/logger';
+import { env } from './env';
 
 interface SendEmailOptions {
   to: string;

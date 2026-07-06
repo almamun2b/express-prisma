@@ -1,6 +1,6 @@
-import { AuthRoutes } from '@/app/modules/auth/auth.route';
-import { UserRoutes } from '@/app/modules/user/user.route';
 import { Router } from 'express';
+import { AuthRoutes } from '../modules/auth/auth.route';
+import { UserRoutes } from '../modules/user/user.route';
 import { HealthRoutes } from './health.route';
 
 const router: Router = Router();

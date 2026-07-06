@@ -1,14 +1,14 @@
-import { QueryBuilder } from '@/app/builder/queryBuilder';
-import { prisma } from '@/app/config/prisma';
-import { AppError } from '@/app/utils/appError';
-import { Codes } from '@/app/utils/codes';
-import { excludeUndefined } from '@/app/utils/exclude';
-import { fileUploader } from '@/app/utils/fileUploader';
-import { comparePassword, hashPassword } from '@/app/utils/hash';
-import { logger } from '@/app/utils/logger';
-import { pick } from '@/app/utils/pick';
-import { AuthProviderName, Prisma, UserStatus } from '@/generated/prisma/client';
+import { AuthProviderName, Prisma, UserStatus } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
+import { QueryBuilder } from 'src/app/builder/queryBuilder';
+import { prisma } from 'src/app/config/prisma';
+import { AppError } from 'src/app/utils/appError';
+import { Codes } from 'src/app/utils/codes';
+import { excludeUndefined } from 'src/app/utils/exclude';
+import { fileUploader } from 'src/app/utils/fileUploader';
+import { comparePassword, hashPassword } from 'src/app/utils/hash';
+import { logger } from 'src/app/utils/logger';
+import { pick } from 'src/app/utils/pick';
 import { UserConstants, UserMessages } from './user.constants';
 import type {
   TChangePasswordInput,
