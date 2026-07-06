@@ -5,7 +5,7 @@ import { prisma } from './app/config/prisma';
 import { connectRedis } from './app/config/redis';
 import { logger } from './app/utils/logger';
 
-let server: Server;
+let server: Server | undefined;
 let isShuttingDown = false;
 
 const Messages = {
@@ -21,6 +21,7 @@ const Messages = {
   UNCAUGHT_EXCEPTION_DETECTED: 'Uncaught exception detected! Server is shutting down:',
 } as const;
 
+// Graceful shutdown (used in local development)
 const shutdown = async (signal: string, exitCode = 0) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
@@ -30,7 +31,7 @@ const shutdown = async (signal: string, exitCode = 0) => {
   try {
     if (server) {
       await new Promise<void>((resolve, reject) => {
-        server.close((err) => (err ? reject(err) : resolve()));
+        server!.close((err) => (err ? reject(err) : resolve()));
       });
       logger.info(Messages.SERVER_CLOSE);
     }
@@ -46,28 +47,32 @@ const shutdown = async (signal: string, exitCode = 0) => {
   }
 };
 
-const bootstrap = async () => {
-  try {
-    await prisma.$connect();
-    logger.info(Messages.CONNECTED_TO_POSTGRESQL_DB);
+// Local Development Only
+if (process.env.NODE_ENV !== 'production') {
+  const bootstrap = async () => {
+    try {
+      await prisma.$connect();
+      logger.info(Messages.CONNECTED_TO_POSTGRESQL_DB);
 
-    server = app.listen(env.port, () => {
-      logger.info(Messages.SERVER_START_SUCCESS(env.port));
-    });
-  } catch (error) {
-    logger.error(Messages.FAILED_TO_START_SERVER, error);
-    await prisma.$disconnect().catch(() => undefined);
-    process.exit(1);
-  }
-};
+      await connectRedis();
 
-const startServer = async () => {
-  await connectRedis();
-  await bootstrap();
-};
+      server = app.listen(env.port, () => {
+        logger.info(Messages.SERVER_START_SUCCESS(env.port));
+      });
+    } catch (error) {
+      logger.error(Messages.FAILED_TO_START_SERVER, error);
+      await prisma.$disconnect().catch(() => undefined);
+      process.exit(1);
+    }
+  };
 
-void startServer();
+  void bootstrap();
+}
 
+// Export app for Vercel Serverless Functions
+export default app;
+
+// Keep these for local graceful shutdown
 process.on('unhandledRejection', (error: Error) => {
   logger.error(Messages.UNHANDLED_REJECTION_DETECTED, error);
   void shutdown('unhandledRejection', 1);
@@ -78,10 +83,5 @@ process.on('uncaughtException', (error: Error) => {
   void shutdown('uncaughtException', 1);
 });
 
-process.on('SIGTERM', () => {
-  void shutdown('SIGTERM', 0);
-});
-
-process.on('SIGINT', () => {
-  void shutdown('SIGINT', 0);
-});
+process.on('SIGTERM', () => void shutdown('SIGTERM', 0));
+process.on('SIGINT', () => void shutdown('SIGINT', 0));
