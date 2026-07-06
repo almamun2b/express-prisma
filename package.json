@@ -32,6 +32,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc --noEmit && tsup",
+    "vercel-build": "prisma generate && npm run build",
     "start": "node dist/server.js",
     "lint": "eslint . --report-unused-disable-directives",
     "lint:fix": "eslint . --fix",
