@@ -28,10 +28,11 @@
   "license": "MIT",
   "author": "Al Mamun <almamun2b@gmail.com>",
   "type": "module",
-  "main": "dist/src/server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx watch ./src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --noEmit && tsup",
+    "start": "node dist/server.js",
     "lint": "eslint . --report-unused-disable-directives",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
@@ -88,6 +89,7 @@
     "lint-staged": "^17.0.7",
     "prettier": "3.8.3",
     "prisma": "^7.8.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.1"

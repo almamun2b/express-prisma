@@ -1,9 +1,9 @@
-import { AppError } from '@/app/utils/appError';
-import { catchAsync } from '@/app/utils/catchAsync';
-import { Codes } from '@/app/utils/codes';
-import { sendResponse } from '@/app/utils/sendResponse';
-import { UserStatus } from '@/generated/prisma/client';
+import { UserStatus } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
+import { AppError } from 'src/app/utils/appError';
+import { catchAsync } from 'src/app/utils/catchAsync';
+import { Codes } from 'src/app/utils/codes';
+import { sendResponse } from 'src/app/utils/sendResponse';
 import { UserMessages } from './user.constants';
 import { UserServices } from './user.service';
 import type {

@@ -1,5 +1,5 @@
-import { env } from '@/app/config/env';
 import type { Response } from 'express';
+import { env } from '../config/env';
 import { expiresInToMs } from './parser';
 
 interface AuthTokens {

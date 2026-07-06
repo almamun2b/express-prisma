@@ -1,5 +1,5 @@
-import { env } from '@/app/config/env';
 import rateLimit from 'express-rate-limit';
+import { env } from '../config/env';
 
 const maxRequests = env.nodeEnv === 'development' ? 10000 : 1000; // Limit each IP to 1000 requests per windowMs
 const maxAuthRequests = env.nodeEnv === 'development' ? 1000 : 5; // Limit each IP to 5 requests per windowMs

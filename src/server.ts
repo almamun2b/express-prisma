@@ -1,9 +1,9 @@
-import app from '@/app';
-import { env } from '@/app/config/env';
-import { prisma } from '@/app/config/prisma';
-import { logger } from '@/app/utils/logger';
 import type { Server } from 'http';
+import app from './app';
+import { env } from './app/config/env';
+import { prisma } from './app/config/prisma';
 import { connectRedis } from './app/config/redis';
+import { logger } from './app/utils/logger';
 
 let server: Server;
 let isShuttingDown = false;

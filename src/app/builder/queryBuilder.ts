@@ -1,4 +1,4 @@
-import type { Prisma } from '@/generated/prisma/client';
+import type { Prisma } from 'generated/prisma/client';
 
 /**
  * Minimal structural contract every Prisma model delegate (e.g. `prisma.user`)

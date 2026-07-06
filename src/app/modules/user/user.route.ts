@@ -1,13 +1,13 @@
-import { checkAuth } from '@/app/middlewares/checkAuth';
+import express, { Router } from 'express';
+import { UserRole } from 'generated/prisma/client';
+import { checkAuth } from 'src/app/middlewares/checkAuth';
 import {
   parseMultipartRequest,
   validateParams,
   validateQuery,
   validateRequest,
-} from '@/app/middlewares/validateRequest';
-import { fileUploader } from '@/app/utils/fileUploader';
-import { UserRole } from '@/generated/prisma/client';
-import express, { Router } from 'express';
+} from 'src/app/middlewares/validateRequest';
+import { fileUploader } from 'src/app/utils/fileUploader';
 import { UserControllers } from './user.controller';
 import { UserValidation } from './user.validation';
 

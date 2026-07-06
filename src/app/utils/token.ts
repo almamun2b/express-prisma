@@ -1,5 +1,5 @@
-import { type User } from '@/generated/prisma/client';
 import { randomUUID } from 'crypto';
+import { type User } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
 import type { JwtPayload, Secret } from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';

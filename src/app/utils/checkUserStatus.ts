@@ -1,4 +1,4 @@
-import { UserStatus } from '@/generated/prisma/client';
+import { UserStatus } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
 import { AppError } from './appError';
 import { Codes } from './codes';

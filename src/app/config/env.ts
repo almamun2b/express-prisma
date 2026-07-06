@@ -120,16 +120,16 @@ const buildEnv = (): IEnv => ({
   },
 });
 
-let env: IEnv;
-
-try {
-  env = buildEnv();
-} catch (error) {
-  if (error instanceof AppError) {
-    console.error(`[env] Error: ${error.message}\n`);
-    process.exit(1);
+const env: IEnv = (() => {
+  try {
+    return buildEnv();
+  } catch (error) {
+    if (error instanceof AppError) {
+      console.error(`[env] Error: ${error.message}\n`);
+      process.exit(1);
+    }
+    throw error;
   }
-  throw error;
-}
+})();
 
 export { env };

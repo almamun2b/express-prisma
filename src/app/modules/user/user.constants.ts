@@ -1,4 +1,4 @@
-import { Prisma } from '@/generated/prisma/client';
+import { Prisma } from 'generated/prisma/client';
 import type { TUserQueryOptions } from './user.types';
 
 const USER_SAFE_SELECT = {

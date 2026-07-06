@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { env } from '@/app/config/env';
+import { env } from '../config/env';
 
 export const hashPassword = async (password: string): Promise<string> =>
   bcrypt.hash(password, env.bcryptSaltRound);

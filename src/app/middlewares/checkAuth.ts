@@ -1,15 +1,15 @@
-import { env } from '@/app/config/env';
-import { prisma } from '@/app/config/prisma';
-import { redisClient } from '@/app/config/redis';
-import { AppError } from '@/app/utils/appError';
-import { checkUserStatus } from '@/app/utils/checkUserStatus';
-import { redis } from '@/app/utils/redis';
-import { extractBearerToken, verifyToken } from '@/app/utils/token';
-import { UserRole } from '@/generated/prisma/client';
 import type { NextFunction, Request, Response } from 'express';
+import { UserRole } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
+import { env } from '../config/env';
+import { prisma } from '../config/prisma';
+import { redisClient } from '../config/redis';
 import { roleHasPermission, type Permission } from '../constants/permissions.constants';
+import { AppError } from '../utils/appError';
+import { checkUserStatus } from '../utils/checkUserStatus';
 import { Codes } from '../utils/codes';
+import { redis } from '../utils/redis';
+import { extractBearerToken, verifyToken } from '../utils/token';
 
 const Messages = {
   UNAUTHORIZED: 'You are not authorized!',
