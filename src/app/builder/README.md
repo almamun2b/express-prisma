@@ -96,8 +96,8 @@ const result = await new QueryBuilder(prisma.user)
 ## ⚡ Quick Start
 
 ```ts
-import { QueryBuilder } from '@/app/builder/queryBuilder';
-import { prisma } from '@/app/config/prisma';
+import { QueryBuilder } from 'src/app/builder/queryBuilder';
+import { prisma } from 'src/app/config/prisma';
 
 // Fetch active users — sorted, paginated, with avatar included
 const { meta, data } = await new QueryBuilder(prisma.user)
@@ -724,9 +724,9 @@ console.log(data.length); // max 10
 This is the production implementation in this project — the same query that powers the `GET /api/v1/users` endpoint:
 
 ```ts
-import { QueryBuilder } from '@/app/builder/queryBuilder';
-import { prisma } from '@/app/config/prisma';
-import { pick } from '@/app/utils/pick';
+import { QueryBuilder } from 'src/app/builder/queryBuilder';
+import { prisma } from 'src/app/config/prisma';
+import { pick } from 'src/app/utils/pick';
 
 const getAllUsersFromDB = async (query: TUserQueryOptions = {}) => {
   const {
