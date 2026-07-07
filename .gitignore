@@ -73,3 +73,5 @@ temp/
 .parcel-cache
 .tern-port
 
+.vercel
+.env*
