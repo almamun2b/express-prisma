@@ -152,14 +152,12 @@ Authenticates the user and sets HTTP-Only tokens.
   "statusCode": 200,
   "message": "Login successful.",
   "data": {
-    "user": {
-      "id": "a9b8c7d6-e5f4-3210-abcd-ef0123456789",
-      "email": "john.doe@example.com",
-      "firstName": "John",
-      "lastName": "Doe",
-      "role": "USER",
-      "status": "ACTIVE"
-    }
+    "id": "a9b8c7d6-e5f4-3210-abcd-ef0123456789",
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "USER",
+    "status": "ACTIVE"
   }
 }
 ```
