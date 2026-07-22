@@ -107,8 +107,8 @@ const buildEnv = (): IEnv => ({
     port: getEnvVar(EnvEnum.GOOGLE_SMTP_PORT, 'number'),
   },
   smtpBrevo: {
-    senderEmail: getEnvVar(EnvEnum.BREVO_SENDER_EMAIL),
-    apiKey: getEnvVar(EnvEnum.BREVO_API_KEY),
+    senderEmail: getEnvVar(EnvEnum.BREVO_SMTP_SENDER_EMAIL),
+    apiKey: getEnvVar(EnvEnum.BREVO_SMTP_API_KEY),
   },
   defaultUsers: {
     superAdminEmail: getEnvVar(EnvEnum.SUPER_ADMIN_EMAIL),
