@@ -2,7 +2,8 @@ import type { Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { env } from 'src/app/config/env';
 import { redisClient } from 'src/app/config/redis';
-import { sendEmail } from 'src/app/config/smtp.gmail';
+// import { sendEmail } from 'src/app/config/smtp.gmail';
+import { sendEmail } from 'src/app/config/smtp.brevo';
 import { AppError } from 'src/app/utils/appError';
 import { Codes } from 'src/app/utils/codes';
 import { getOtpEmailTemplate, getPasswordResetEmailTemplate } from 'src/app/utils/emailTemplate';
@@ -41,7 +42,7 @@ const sendOtpToEmail = async (email: string) => {
   const html = getOtpEmailTemplate(otp, expiresIn);
 
   const result = await sendEmail({
-    to: email,
+    email,
     subject: 'Your email verification code',
     html,
   });
@@ -55,7 +56,7 @@ const sendPasswordResetEmail = async (email: string, resetLink: string) => {
   const html = getPasswordResetEmailTemplate(resetLink, expiresIn);
 
   const result = await sendEmail({
-    to: email,
+    email,
     subject: 'Reset your password',
     html,
   });

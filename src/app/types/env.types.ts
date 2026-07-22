@@ -22,11 +22,15 @@ interface IEnv {
   clientUrl: string;
   corsOrigins: string[];
   resetPassLink: string;
-  emailSender: {
-    email: string;
+  smtpGoogle: {
+    senderEmail: string;
     appPass: string;
     host: string;
     port: number;
+  };
+  smtpBrevo: {
+    apiKey: string;
+    senderEmail: string;
   };
   defaultUsers: {
     superAdminEmail: string;
@@ -60,10 +64,12 @@ enum EnvEnum {
   CLIENT_URL = 'CLIENT_URL',
   CORS_ORIGINS = 'CORS_ORIGINS',
   RESET_PASS_URL = 'RESET_PASS_URL',
-  EMAIL_SENDER_EMAIL = 'EMAIL_SENDER_EMAIL',
-  EMAIL_SENDER_APP_PASS = 'EMAIL_SENDER_APP_PASS',
-  EMAIL_SENDER_HOST = 'EMAIL_SENDER_HOST',
-  EMAIL_SENDER_PORT = 'EMAIL_SENDER_PORT',
+  GOOGLE_SMTP_SENDER_EMAIL = 'GOOGLE_SMTP_SENDER_EMAIL',
+  GOOGLE_SMTP_APP_PASS = 'GOOGLE_SMTP_APP_PASS',
+  GOOGLE_SMTP_HOST = 'GOOGLE_SMTP_HOST',
+  GOOGLE_SMTP_PORT = 'GOOGLE_SMTP_PORT',
+  BREVO_API_KEY = 'BREVO_API_KEY',
+  BREVO_SENDER_EMAIL = 'BREVO_SENDER_EMAIL',
   SUPER_ADMIN_EMAIL = 'SUPER_ADMIN_EMAIL',
   SUPER_ADMIN_PASS = 'SUPER_ADMIN_PASS',
   ADMIN_EMAIL = 'ADMIN_EMAIL',
