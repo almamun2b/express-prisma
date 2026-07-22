@@ -20,8 +20,8 @@ export const sendEmail = async ({ email, subject, html }: SendEmailOptions): Pro
       url,
       {
         sender: {
-          name: 'API',
-          email: env.emailSender.email,
+          name: 'API Support',
+          email: env.smtpBrevo.senderEmail,
         },
         to: [
           {
@@ -34,7 +34,7 @@ export const sendEmail = async ({ email, subject, html }: SendEmailOptions): Pro
       {
         headers: {
           accept: 'application/json',
-          'api-key': env.emailSender.appPass,
+          'api-key': env.smtpBrevo.apiKey,
           'content-type': 'application/json',
         },
       }

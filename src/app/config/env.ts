@@ -100,11 +100,15 @@ const buildEnv = (): IEnv => ({
   clientUrl: getEnvVar(EnvEnum.CLIENT_URL),
   corsOrigins: getEnvVar(EnvEnum.CORS_ORIGINS, 'array'),
   resetPassLink: getEnvVar(EnvEnum.RESET_PASS_URL),
-  emailSender: {
-    email: getEnvVar(EnvEnum.EMAIL_SENDER_EMAIL),
-    appPass: getEnvVar(EnvEnum.EMAIL_SENDER_APP_PASS),
-    host: getEnvVar(EnvEnum.EMAIL_SENDER_HOST),
-    port: getEnvVar(EnvEnum.EMAIL_SENDER_PORT, 'number'),
+  smtpGoogle: {
+    senderEmail: getEnvVar(EnvEnum.GOOGLE_SMTP_SENDER_EMAIL),
+    appPass: getEnvVar(EnvEnum.GOOGLE_SMTP_APP_PASS),
+    host: getEnvVar(EnvEnum.GOOGLE_SMTP_HOST),
+    port: getEnvVar(EnvEnum.GOOGLE_SMTP_PORT, 'number'),
+  },
+  smtpBrevo: {
+    senderEmail: getEnvVar(EnvEnum.BREVO_SENDER_EMAIL),
+    apiKey: getEnvVar(EnvEnum.BREVO_API_KEY),
   },
   defaultUsers: {
     superAdminEmail: getEnvVar(EnvEnum.SUPER_ADMIN_EMAIL),
