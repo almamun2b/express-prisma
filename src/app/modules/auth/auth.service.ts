@@ -191,7 +191,7 @@ const login = async (input: TLoginInput) => {
 
   checkUserStatus(user);
 
-  if (!user?.password) {
+  if (!user.password) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
