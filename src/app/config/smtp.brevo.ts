@@ -14,7 +14,7 @@ const Messages = {
 
 const url = 'https://api.brevo.com/v3/smtp/email';
 
-export const sendEmail = async ({ email, subject, html }: SendEmailOptions): Promise<unknown> => {
+export const sendEmail = async ({ email, subject, html }: SendEmailOptions) => {
   try {
     const response = await axios.post(
       url,

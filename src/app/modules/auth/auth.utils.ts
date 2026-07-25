@@ -24,12 +24,12 @@ const Messages = {
 const sendOtpToEmail = async (email: string) => {
   const otpKey = redis.getOtpRedisKey(email);
   const cooldownKey = redis.getOtpCooldownRedisKey(email);
-  const cooldownExists = await redisClient.exists(cooldownKey);
+  const cooldownTime = await redisClient.ttl(cooldownKey);
 
-  if (cooldownExists) {
+  if (cooldownTime > 0) {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
-      `${Messages.RESEND_COOLDOWN(RedisConstants.OTP_COOLDOWN_SECONDS)}`,
+      `${Messages.RESEND_COOLDOWN(cooldownTime)}`,
       Codes.TOO_MANY_REQUESTS
     );
   }
