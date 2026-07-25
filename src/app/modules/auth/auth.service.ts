@@ -295,13 +295,12 @@ const forgotPassword = async (input: TForgotPasswordInput) => {
   const { email } = input;
 
   const cooldownKey = redis.getForgotPassCooldownRedisKey(email);
-  const cooldownExists = await redisClient.exists(cooldownKey);
+  const cooldownTime = await redisClient.ttl(cooldownKey);
 
-  if (cooldownExists) {
-    const ttl = await redisClient.ttl(cooldownKey);
+  if (cooldownTime > 0) {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
-      `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${ttl} second(s).`,
+      `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${cooldownTime} second(s).`,
       Codes.TOO_MANY_REQUESTS
     );
   }
@@ -336,13 +335,12 @@ const resendForgotPassword = async (input: TForgotPasswordInput) => {
   const { email } = input;
 
   const cooldownKey = redis.getForgotPassCooldownRedisKey(email);
-  const cooldownExists = await redisClient.exists(cooldownKey);
+  const cooldownTime = await redisClient.ttl(cooldownKey);
 
-  if (cooldownExists) {
-    const ttl = await redisClient.ttl(cooldownKey);
+  if (cooldownTime > 0) {
     throw new AppError(
       StatusCodes.TOO_MANY_REQUESTS,
-      `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${ttl} second(s).`,
+      `${AuthMessages.RESEND_FORGOT_PASSWORD_COOLDOWN} Try again in ${cooldownTime} second(s).`,
       Codes.TOO_MANY_REQUESTS
     );
   }
