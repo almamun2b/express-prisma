@@ -4,6 +4,7 @@ import { AppError } from 'src/app/utils/appError';
 import { catchAsync } from 'src/app/utils/catchAsync';
 import { Codes } from 'src/app/utils/codes';
 import { sendResponse } from 'src/app/utils/sendResponse';
+import { AuthServices } from '../auth/auth.service';
 import { UserMessages } from './user.constants';
 import { UserServices } from './user.service';
 import type {
@@ -146,16 +147,18 @@ const deactivateMyAccount = catchAsync(async (req, res) => {
   if (!userId) {
     throw new AppError(StatusCodes.UNAUTHORIZED, 'Unauthorized', Codes.UNAUTHORIZED);
   }
-  const result = await UserServices.updateUserStatusOrRoleInDB(userId, {
+  const deactivatedUser = await UserServices.updateUserStatusOrRoleInDB(userId, {
     status: UserStatus.INACTIVE,
   });
+
+  await AuthServices.logout(req, res);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: UserMessages.DEACTIVATE_SUCCESS,
     path: req.originalUrl,
-    data: result,
+    data: deactivatedUser,
   });
 });
 
