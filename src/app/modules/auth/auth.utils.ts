@@ -1,6 +1,7 @@
 import type { Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { env } from 'src/app/config/env';
+import { prisma } from 'src/app/config/prisma';
 import { redisClient } from 'src/app/config/redis';
 // import { sendEmail } from 'src/app/config/smtp.gmail';
 import { sendEmail } from 'src/app/config/smtp.brevo';
@@ -133,6 +134,33 @@ const blacklistTokens = async (req: Request) => {
   await AuthUtils.blacklistRefreshToken(refreshToken);
 };
 
+const generateUsername = async (email: string): Promise<string> => {
+  const prefix = email.split('@')[0] ?? 'user';
+  const baseUsername = prefix.replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 30);
+
+  const username = baseUsername;
+  let suffix = 0;
+  const maxAttempts = 50;
+
+  while (suffix < maxAttempts) {
+    const candidate = suffix === 0 ? username : `${baseUsername}${suffix}`;
+    const existing = await prisma.user.findUnique({
+      where: { username: candidate },
+      select: { id: true },
+    });
+    if (!existing) {
+      return candidate;
+    }
+    suffix++;
+  }
+
+  throw new AppError(
+    StatusCodes.INTERNAL_SERVER_ERROR,
+    'Unable to generate a unique username. Please contact support.',
+    Codes.INTERNAL_SERVER_ERROR
+  );
+};
+
 export const AuthUtils = {
   sendOtpToEmail,
   blacklistTokens,
@@ -140,4 +168,5 @@ export const AuthUtils = {
   blacklistRefreshToken,
   blacklistForgotPassToken,
   sendPasswordResetEmail,
+  generateUsername,
 };

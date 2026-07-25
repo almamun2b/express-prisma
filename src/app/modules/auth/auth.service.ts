@@ -55,6 +55,7 @@ const register = async (input: TRegisterInput) => {
   }
 
   const hashedPassword = await hashPassword(password);
+  const username = await AuthUtils.generateUsername(email);
 
   /*
    * Alternative approach to implement this logic:
@@ -87,6 +88,7 @@ const register = async (input: TRegisterInput) => {
       firstName,
       lastName,
       email,
+      username,
       password: hashedPassword,
       status: UserStatus.PENDING,
       isVerified: false,
