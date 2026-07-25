@@ -189,6 +189,8 @@ const login = async (input: TLoginInput) => {
     },
   });
 
+  checkUserStatus(user);
+
   if (!user?.password) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
@@ -205,8 +207,6 @@ const login = async (input: TLoginInput) => {
       Codes.UNAUTHORIZED
     );
   }
-
-  checkUserStatus(user);
 
   const tokens = createUserTokens(user);
 
