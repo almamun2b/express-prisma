@@ -189,7 +189,9 @@ const login = async (input: TLoginInput) => {
     },
   });
 
-  if (!user?.password) {
+  checkUserStatus(user);
+
+  if (!user.password) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       AuthMessages.INVALID_CREDENTIALS,
@@ -205,8 +207,6 @@ const login = async (input: TLoginInput) => {
       Codes.UNAUTHORIZED
     );
   }
-
-  checkUserStatus(user);
 
   const tokens = createUserTokens(user);
 
