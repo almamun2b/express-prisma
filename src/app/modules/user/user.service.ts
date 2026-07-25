@@ -2,6 +2,7 @@ import { AuthProviderName, Prisma, UserStatus } from 'generated/prisma/client';
 import { StatusCodes } from 'http-status-codes';
 import { QueryBuilder } from 'src/app/builder/queryBuilder';
 import { prisma } from 'src/app/config/prisma';
+import { AuthUtils } from 'src/app/modules/auth/auth.utils';
 import { AppError } from 'src/app/utils/appError';
 import { Codes } from 'src/app/utils/codes';
 import { excludeUndefined } from 'src/app/utils/exclude';
@@ -217,9 +218,11 @@ const createUserInDB = async (payload: TCreateUserInput) => {
     throw new AppError(StatusCodes.CONFLICT, UserMessages.EMAIL_ALREADY_EXISTS, Codes.CONFLICT);
   }
 
-  if (username) {
+  let resolvedUsername = username;
+
+  if (resolvedUsername) {
     const existingUsername = await prisma.user.findUnique({
-      where: { username },
+      where: { username: resolvedUsername },
       select: { id: true },
     });
 
@@ -230,6 +233,8 @@ const createUserInDB = async (payload: TCreateUserInput) => {
         Codes.CONFLICT
       );
     }
+  } else {
+    resolvedUsername = await AuthUtils.generateUsername(email);
   }
 
   const hashedPassword = await hashPassword(payload.password);
@@ -239,6 +244,7 @@ const createUserInDB = async (payload: TCreateUserInput) => {
   const newUser = await prisma.user.create({
     data: {
       ...safePayload,
+      username: resolvedUsername,
       password: hashedPassword,
       status: payload.status ?? UserStatus.ACTIVE,
       isVerified: true,
