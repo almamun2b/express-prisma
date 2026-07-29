@@ -14,7 +14,6 @@ import { clearAuthCookies, setAuthCookies } from 'src/app/utils/setCookie';
 import {
   createJwtPayload,
   createUserTokens,
-  extractBearerToken,
   generateToken,
   verifyToken,
 } from 'src/app/utils/token';
@@ -224,15 +223,12 @@ const login = async (input: TLoginInput) => {
 };
 
 const refreshToken = async (req: Request, res: Response) => {
-  const accessToken =
-    (req.cookies?.accessToken as string | undefined) ??
-    extractBearerToken(req.headers.authorization);
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
-  if (!refreshToken || !accessToken) {
+  if (!refreshToken) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
-      AuthMessages.ACCESS_OR_REFRESH_TOKEN_MISSING,
+      AuthMessages.REFRESH_TOKEN_MISSING,
       Codes.UNAUTHORIZED
     );
   }
@@ -273,7 +269,7 @@ const refreshToken = async (req: Request, res: Response) => {
 
   checkUserStatus(user);
 
-  await AuthUtils.blacklistTokens(req);
+  await AuthUtils.blacklistRefreshToken(refreshToken);
 
   const tokens = createUserTokens(user);
   setAuthCookies(res, tokens);

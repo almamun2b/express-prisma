@@ -130,8 +130,8 @@ const blacklistTokens = async (req: Request) => {
     );
   }
 
-  await AuthUtils.blacklistAccessToken(accessToken);
-  await AuthUtils.blacklistRefreshToken(refreshToken);
+  await blacklistAccessToken(accessToken);
+  await blacklistRefreshToken(refreshToken);
 };
 
 const generateUsername = async (email: string): Promise<string> => {
