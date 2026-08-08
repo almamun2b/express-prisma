@@ -96,6 +96,14 @@ router.get(
 );
 
 router.patch(
+  '/:id',
+  checkAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  validateParams(UserValidation.paramsIdSchema),
+  validateRequest(UserValidation.updateProfileSchema),
+  UserControllers.updateUserById
+);
+
+router.patch(
   '/:id/status',
   checkAuth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   validateParams(UserValidation.paramsIdSchema),

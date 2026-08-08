@@ -29,6 +29,7 @@ The application enforces a tiered authorization hierarchy across all endpoints u
 | `PATCH`  | `/api/v1/users/me/deactivate`      | Deactivate account (sets status to `INACTIVE`)         | Any Authenticated User |
 | `PATCH`  | `/api/v1/users/me/reactivate`      | Reactivate account (sets status to `ACTIVE`)           | Any Authenticated User |
 | `GET`    | `/api/v1/users/:id`                | Fetch detailed user data by primary ID key             | `ADMIN`, `SUPER_ADMIN` |
+| `PATCH`  | `/api/v1/users/:id`                | Update user profile by ID                              | `ADMIN`, `SUPER_ADMIN` |
 | `PATCH`  | `/api/v1/users/:id/status`         | Adjust user status (e.g. suspend or ban)               | `ADMIN`, `SUPER_ADMIN` |
 | `PATCH`  | `/api/v1/users/:id/role`           | Promote or demote user access tier                     | `SUPER_ADMIN`          |
 | `DELETE` | `/api/v1/users/:id`                | Soft-delete user (sets `deletedAt` and status)         | `ADMIN`, `SUPER_ADMIN` |
