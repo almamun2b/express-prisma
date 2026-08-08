@@ -150,7 +150,7 @@ Content-Type: application/json
 ### USER MANAGEMENT MODULE
 ### =========================================================================
 
-@userId = 9b7a3fa1-6e1c-457d-872b-0b4efedb33e7
+@userId = a5b9a39e-7423-4cc7-9001-6a6df076904e
 @oldPassword = SecurePass1#
 @newUserPassword = NewPassword1#
 @cursor = e61fea17-5eb3-4d86-881a-7ef844056722
@@ -281,7 +281,25 @@ GET {{baseUrl}}/users/{{userId}}
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
-### 14. Update User Status (Admin / Super Admin only)
+### 14. Update User by ID (Admin / Super Admin only)
+# @name updateUserById
+PATCH {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "firstName": "{{firstName}}",
+  "lastName": "{{lastName}}",
+  "phone": "+9876543210",
+  "gender": "MALE",
+  "bio": "Updated by admin",
+  "address": "New York, NY",
+  "dateOfBirth": "1994-04-20",
+  "timezone": "America/New_York",
+  "locale": "en-US"
+}
+
+### 15. Update User Status (Admin / Super Admin only)
 # @name updateUserStatus
 PATCH {{baseUrl}}/users/{{userId}}/status
 Authorization: Bearer {{accessToken}}
@@ -291,7 +309,7 @@ Content-Type: application/json
   "status": "SUSPENDED"
 }
 
-### 15. Update User Role (Super Admin only)
+### 16. Update User Role (Super Admin only)
 # @name updateUserRole
 PATCH {{baseUrl}}/users/{{userId}}/role
 Authorization: Bearer {{accessToken}}
@@ -301,13 +319,13 @@ Content-Type: application/json
   "role": "ADMIN"
 }
 
-### 16. Soft Delete User (Admin / Super Admin only)
+### 17. Soft Delete User (Admin / Super Admin only)
 # @name deleteUserSoft
 DELETE {{baseUrl}}/users/{{userId}}
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
-### 17. Hard Delete User (Super Admin only)
+### 18. Hard Delete User (Super Admin only)
 # @name deleteUserHard
 DELETE {{baseUrl}}/users/{{userId}}/hard
 Authorization: Bearer {{accessToken}}

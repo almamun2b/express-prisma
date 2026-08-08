@@ -197,6 +197,22 @@ const getUserById = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  if (!id || Array.isArray(id)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid user ID', Codes.BAD_REQUEST);
+  }
+  const result = await UserServices.updateUserProfileInDB(id, req.body as TUpdateProfileInput);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: UserMessages.UPDATE_SUCCESS,
+    path: req.originalUrl,
+    data: result,
+  });
+});
+
 const updateUserStatus = catchAsync(async (req, res) => {
   const { id } = req.params;
   if (!id || Array.isArray(id)) {
@@ -266,6 +282,7 @@ export const UserControllers = {
   getAllUsers,
   getAllUsersWithCursor,
   getUserById,
+  updateUserById,
   getMyProfile,
   updateMyProfile,
   updateMyAvatar,
